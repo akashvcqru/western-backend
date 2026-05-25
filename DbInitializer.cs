@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using western_backend.Models;
 
 namespace western_backend
@@ -13,6 +14,24 @@ namespace western_backend
         public static void Initialize(AppDbContext context, string dataPath)
         {
             context.Database.EnsureCreated();
+
+            // Run raw SQL migrations for SubCategories table & columns
+            context.Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS SubCategories (
+                    Id TEXT PRIMARY KEY,
+                    Slug TEXT,
+                    Name TEXT,
+                    Description TEXT,
+                    Image TEXT,
+                    CategoryId TEXT,
+                    Status TEXT
+                );");
+
+            try
+            {
+                context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN SubCategory TEXT;");
+            }
+            catch { /* Ignored if column already exists */ }
 
             // 1. Seed Admin User
             if (!context.Users.Any())
@@ -29,7 +48,7 @@ namespace western_backend
             }
 
             // 2. Seed Settings
-            if (!context.Settings.Any())
+            if (!context.Settings.Any(s => s.Key.ToLower() == "bdm_settings_contact"))
             {
                 var contactSettings = new
                 {
@@ -37,19 +56,35 @@ namespace western_backend
                     phoneNumber = "+91 98765 43210",
                     storeAddress = "123, Building Material Market, New Delhi, 110001"
                 };
+                context.Settings.Add(new Setting { Key = "bdm_settings_contact", Value = JsonSerializer.Serialize(contactSettings) });
+            }
+
+            if (!context.Settings.Any(s => s.Key.ToLower() == "bdm_settings_social"))
+            {
                 var socialSettings = new
                 {
                     instagramUrl = "",
                     facebookUrl = "",
                     twitterUrl = ""
                 };
-
-                context.Settings.AddRange(
-                    new Setting { Key = "bdm_settings_contact", Value = JsonSerializer.Serialize(contactSettings) },
-                    new Setting { Key = "bdm_settings_social", Value = JsonSerializer.Serialize(socialSettings) }
-                );
-                context.SaveChanges();
+                context.Settings.Add(new Setting { Key = "bdm_settings_social", Value = JsonSerializer.Serialize(socialSettings) });
             }
+
+            if (!context.Settings.Any(s => s.Key.ToLower() == "bdm_settings_slider"))
+            {
+                var sliderSettings = new
+                {
+                    heading = "Welcome to Western Interio",
+                    description = "Think to design beyond. Please upload showcase images or configure slide settings in the admin panel to populate this slider.",
+                    buttonText = "Start Your Project",
+                    buttonLink = "#quote",
+                    images = new string[] {
+                        "https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=2070&auto=format&fit=crop"
+                    }
+                };
+                context.Settings.Add(new Setting { Key = "bdm_settings_slider", Value = JsonSerializer.Serialize(sliderSettings) });
+            }
+            context.SaveChanges();
 
             // Options for JSON Deserialization
             var jsonOptions = new JsonSerializerOptions
@@ -173,65 +208,7 @@ namespace western_backend
             // 7. Seed Inquiries
             if (!context.Inquiries.Any())
             {
-                var mockInquiries = new List<Inquiry>
-                {
-                    new Inquiry
-                    {
-                        Id = 1,
-                        Name = "Ramesh Kumar",
-                        Email = "ramesh@example.com",
-                        Phone = "+91 98765 43210",
-                        Subject = "Tiles Enquiry",
-                        Message = "I am interested in premium marble tiles for my living room renovation project. Please share a quote for 800 sq ft.",
-                        Date = "2026-05-11",
-                        Status = "new"
-                    },
-                    new Inquiry
-                    {
-                        Id = 2,
-                        Name = "Priya Sharma",
-                        Email = "priya@example.com",
-                        Phone = "+91 87654 32109",
-                        Subject = "Wooden Flooring Quote",
-                        Message = "Looking for engineered wooden flooring options for a 3BHK flat in Gurugram. Do you offer installation services?",
-                        Date = "2026-05-10",
-                        Status = "new"
-                    },
-                    new Inquiry
-                    {
-                        Id = 3,
-                        Name = "Suresh Patel",
-                        Email = "suresh@example.com",
-                        Phone = "+91 76543 21098",
-                        Subject = "Bathroom Fittings",
-                        Message = "Need quote for sanitaryware and matte black bathroom fittings for our commercial office remodel.",
-                        Date = "2026-05-10",
-                        Status = "new"
-                    },
-                    new Inquiry
-                    {
-                        Id = 4,
-                        Name = "Anita Singh",
-                        Email = "anita@example.com",
-                        Phone = "+91 65432 10987",
-                        Subject = "Modular Kitchen",
-                        Message = "Interested in a customized L-shaped acrylic finish modular kitchen. Please let me know your design consultation process.",
-                        Date = "2026-05-09",
-                        Status = "new"
-                    },
-                    new Inquiry
-                    {
-                        Id = 5,
-                        Name = "Vikram Mehta",
-                        Email = "vikram@example.com",
-                        Phone = "+91 54321 09876",
-                        Subject = "Wall Panels",
-                        Message = "Need 3D fluted charcoal wall panels for a hotel reception backdrop. Quantity is approximately 25 sheets.",
-                        Date = "2026-05-09",
-                        Status = "new"
-                    }
-                };
-
+                var mockInquiries = new List<Inquiry>();
                 context.Inquiries.AddRange(mockInquiries);
                 context.SaveChanges();
             }

@@ -157,6 +157,131 @@ namespace western_backend.Controllers
             return Ok(ApiResponse.Success<object>(null!, "Category deleted successfully"));
         }
 
+        public class SubCategoryRequest
+        {
+            public string Name { get; set; } = string.Empty;
+            public string Description { get; set; } = string.Empty;
+            public string Image { get; set; } = string.Empty;
+            public string CategoryId { get; set; } = string.Empty;
+            public string Status { get; set; } = "Active";
+        }
+
+        [HttpGet("subcategories")]
+        public async Task<ActionResult<PaginatedApiResponse<SubCategory>>> GetAllSubcategories(
+            [FromQuery] int page = 1,
+            [FromQuery] int limit = 100,
+            [FromQuery] string? search = null)
+        {
+            if (page < 1) page = 1;
+            if (limit < 1) limit = 100;
+            if (limit > 100) limit = 100;
+
+            var query = _context.SubCategories.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                string s = search.Trim().ToLower();
+                query = query.Where(c =>
+                    c.Name.ToLower().Contains(s) ||
+                    c.Id.ToLower().Contains(s) ||
+                    c.Description.ToLower().Contains(s));
+            }
+
+            int totalItems = await query.CountAsync();
+
+            var subCategories = await query
+                .OrderBy(c => c.Name)
+                .Skip((page - 1) * limit)
+                .Take(limit)
+                .ToListAsync();
+
+            return Ok(ApiResponse.Paginated(subCategories, page, totalItems, limit));
+        }
+
+        [HttpGet("subcategories/{id}")]
+        public async Task<ActionResult<ApiResponse<SubCategory>>> GetSubcategoryById(string id)
+        {
+            var subCategory = await _context.SubCategories.FirstOrDefaultAsync(c => c.Id == id || c.Slug == id);
+            if (subCategory == null)
+            {
+                return NotFound(ApiResponse.Error($"SubCategory '{id}' not found"));
+            }
+            return Ok(ApiResponse.Success(subCategory));
+        }
+
+        [HttpPost("subcategories")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<SubCategory>>> CreateSubcategory([FromBody] SubCategoryRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(ApiResponse.Error("Invalid subcategory payload"));
+            }
+
+            string slug = GenerateSlug(request.Name);
+            string uniqueId = slug;
+            int counter = 1;
+            while (await _context.SubCategories.AnyAsync(c => c.Id == uniqueId))
+            {
+                uniqueId = $"{slug}-{counter++}";
+            }
+
+            var subCategory = new SubCategory
+            {
+                Id = uniqueId,
+                Slug = uniqueId,
+                Name = request.Name,
+                Description = request.Description,
+                Image = request.Image,
+                CategoryId = request.CategoryId,
+                Status = request.Status
+            };
+
+            _context.SubCategories.Add(subCategory);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetSubcategoryById), new { id = subCategory.Id },
+                ApiResponse.Success(subCategory, "SubCategory created successfully"));
+        }
+
+        [HttpPut("subcategories/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<SubCategory>>> UpdateSubcategory(string id, [FromBody] SubCategoryRequest request)
+        {
+            var subCategory = await _context.SubCategories.FirstOrDefaultAsync(c => c.Id == id);
+            if (subCategory == null)
+            {
+                return NotFound(ApiResponse.Error($"SubCategory '{id}' not found"));
+            }
+
+            subCategory.Name = request.Name;
+            subCategory.Description = request.Description;
+            subCategory.Image = request.Image;
+            subCategory.CategoryId = request.CategoryId;
+            subCategory.Status = request.Status;
+
+            _context.SubCategories.Update(subCategory);
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse.Success(subCategory, "SubCategory updated successfully"));
+        }
+
+        [HttpDelete("subcategories/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteSubcategory(string id)
+        {
+            var subCategory = await _context.SubCategories.FirstOrDefaultAsync(c => c.Id == id);
+            if (subCategory == null)
+            {
+                return NotFound(ApiResponse.Error($"SubCategory '{id}' not found"));
+            }
+
+            _context.SubCategories.Remove(subCategory);
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse.Success<object>(null!, "SubCategory deleted successfully"));
+        }
+
         private static string GenerateSlug(string name)
         {
             string cleaned = System.Text.RegularExpressions.Regex.Replace(name.ToLower().Trim(), @"[^\w\s-]", "");

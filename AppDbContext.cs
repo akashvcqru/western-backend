@@ -11,6 +11,7 @@ namespace western_backend
 
         public DbSet<User> Users => Set<User>();
         public DbSet<Category> Categories => Set<Category>();
+        public DbSet<SubCategory> SubCategories => Set<SubCategory>();
         public DbSet<Brand> Brands => Set<Brand>();
         public DbSet<GalleryItem> Gallery => Set<GalleryItem>();
         public DbSet<BlogPost> Blogs => Set<BlogPost>();

@@ -122,6 +122,7 @@ namespace western_backend.Controllers
 
             product.Name = updatedProduct.Name;
             product.Category = updatedProduct.Category;
+            product.SubCategory = updatedProduct.SubCategory;
             product.Brand = updatedProduct.Brand;
             product.Price = updatedProduct.Price;
             product.Status = updatedProduct.Status;

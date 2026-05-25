@@ -20,6 +20,17 @@ namespace western_backend.Models
         public string Status { get; set; } = "Active";
     }
 
+    public class SubCategory
+    {
+        public string Id { get; set; } = string.Empty;
+        public string? Slug { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Image { get; set; } = string.Empty;
+        public string CategoryId { get; set; } = string.Empty;
+        public string Status { get; set; } = "Active";
+    }
+
     public class Brand
     {
         public string Id { get; set; } = string.Empty; // Guid string
@@ -75,6 +86,7 @@ namespace western_backend.Models
         public string Slug { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
+        public string? SubCategory { get; set; }
         public string Brand { get; set; } = string.Empty;
         public string Price { get; set; } = string.Empty;
         public string Status { get; set; } = "Active";
