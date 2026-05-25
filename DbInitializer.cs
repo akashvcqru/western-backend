@@ -15,23 +15,26 @@ namespace western_backend
         {
             context.Database.EnsureCreated();
 
-            // Run raw SQL migrations for SubCategories table & columns
-            context.Database.ExecuteSqlRaw(@"
-                CREATE TABLE IF NOT EXISTS SubCategories (
-                    Id TEXT PRIMARY KEY,
-                    Slug TEXT,
-                    Name TEXT,
-                    Description TEXT,
-                    Image TEXT,
-                    CategoryId TEXT,
-                    Status TEXT
-                );");
-
-            try
+            // Run raw SQL migrations for SubCategories table & columns (SQLite only)
+            if (context.Database.IsSqlite())
             {
-                context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN SubCategory TEXT;");
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE TABLE IF NOT EXISTS SubCategories (
+                        Id TEXT PRIMARY KEY,
+                        Slug TEXT,
+                        Name TEXT,
+                        Description TEXT,
+                        Image TEXT,
+                        CategoryId TEXT,
+                        Status TEXT
+                    );");
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN SubCategory TEXT;");
+                }
+                catch { /* Ignored if column already exists */ }
             }
-            catch { /* Ignored if column already exists */ }
 
             // 1. Seed Admin User
             if (!context.Users.Any())

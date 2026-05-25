@@ -95,7 +95,7 @@ if (app.Environment.IsDevelopment() || true) // Enable Swagger in all environmen
 
 app.UseCors("AllowAll");
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,6 +1,26 @@
 @western_backend_HostAddress = http://localhost:5073
 
-GET {{western_backend_HostAddress}}/weatherforecast/
+### Get All Products
+GET {{western_backend_HostAddress}}/api/products?page=1&limit=10
 Accept: application/json
 
-###
+### Get All Categories
+GET {{western_backend_HostAddress}}/api/categories
+Accept: application/json
+
+### Get All Subcategories
+GET {{western_backend_HostAddress}}/api/categories/subcategories
+Accept: application/json
+
+### Get Gallery Items
+GET {{western_backend_HostAddress}}/api/gallery?page=1&limit=12
+Accept: application/json
+
+### Get Blog Posts
+GET {{western_backend_HostAddress}}/api/blogs?page=1&limit=10
+Accept: application/json
+
+### Get Settings (Contact)
+GET {{western_backend_HostAddress}}/api/settings/contact
+Accept: application/json
+
