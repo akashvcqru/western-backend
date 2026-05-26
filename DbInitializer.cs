@@ -81,9 +81,9 @@ namespace western_backend
             {
                 var contactSettings = new
                 {
-                    supportEmail = "info@bawadittamal.com",
-                    phoneNumber = "+91 98765 43210",
-                    storeAddress = "123, Building Material Market, New Delhi, 110001"
+                    supportEmail = "info@westerninterio.in",
+                    phoneNumber = "+91-9540641111, +91-9540017776",
+                    storeAddress = "Plot No. 06, Gali No.-06, Kadipur Industrial Area, Gurugram, Haryana – 122505"
                 };
                 context.Settings.Add(new Setting { Key = "bdm_settings_contact", Value = JsonSerializer.Serialize(contactSettings) });
             }
