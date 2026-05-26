@@ -42,6 +42,19 @@ namespace western_backend
                         CreatedAt TEXT
                     );");
 
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE TABLE IF NOT EXISTS Catalogues (
+                        Id TEXT PRIMARY KEY,
+                        Title TEXT,
+                        Description TEXT,
+                        Category TEXT,
+                        Image TEXT,
+                        PdfData TEXT,
+                        PdfFileName TEXT,
+                        Status TEXT,
+                        CreatedAt TEXT
+                    );");
+
                 try
                 {
                     context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN SubCategory TEXT;");
@@ -431,6 +444,44 @@ namespace western_backend
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error seeding testimonials: {ex.Message}");
+                    }
+                }
+            }
+
+            // 11. Seed Catalogues from download-center.json
+            if (!context.Catalogues.Any())
+            {
+                var filePath = Path.Combine(dataPath, "download-center.json");
+                if (File.Exists(filePath))
+                {
+                    try
+                    {
+                        var json = File.ReadAllText(filePath);
+                        using (var doc = JsonDocument.Parse(json))
+                        {
+                            var catalogues = new List<Catalogue>();
+                            foreach (var item in doc.RootElement.EnumerateArray())
+                            {
+                                catalogues.Add(new Catalogue
+                                {
+                                    Id = Guid.NewGuid().ToString(),
+                                    Title = item.GetProperty("title").GetString() ?? "",
+                                    Description = item.GetProperty("description").GetString() ?? "",
+                                    Category = item.GetProperty("category").GetString() ?? "",
+                                    Image = item.GetProperty("image").GetString() ?? "",
+                                    PdfData = "",
+                                    PdfFileName = "",
+                                    Status = "Active",
+                                    CreatedAt = DateTime.UtcNow
+                                });
+                            }
+                            context.Catalogues.AddRange(catalogues);
+                            context.SaveChanges();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error seeding catalogues: {ex.Message}");
                     }
                 }
             }

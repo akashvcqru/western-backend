@@ -93,6 +93,19 @@ namespace western_backend.Models
         public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
     }
 
+    public class Catalogue
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Image { get; set; } = string.Empty;
+        public string PdfData { get; set; } = string.Empty;
+        public string PdfFileName { get; set; } = string.Empty;
+        public string Status { get; set; } = "Active";
+        public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
+    }
+
     public class Product
     {
         public string Id { get; set; } = string.Empty;

@@ -19,6 +19,7 @@ namespace western_backend
         public DbSet<Setting> Settings => Set<Setting>();
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Testimonial> Testimonials => Set<Testimonial>();
+        public DbSet<Catalogue> Catalogues => Set<Catalogue>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
