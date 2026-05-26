@@ -9,6 +9,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add Connection String & DbContext
 var connectionString = builder.Configuration.GetConnectionString("constr") ?? "Data Source=western.db";
+
+if (args.Contains("--migrate"))
+{
+    DataMigrator.Migrate("Data Source=western.db", connectionString);
+    return;
+}
+
+if (args.Contains("--generate-schema"))
+{
+    var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+    // Use SQL Server configuration to ensure generating SQL Server compatible schema creation script
+    optionsBuilder.UseSqlServer(connectionString);
+    using var db = new AppDbContext(optionsBuilder.Options);
+    var schema = db.Database.GenerateCreateScript();
+    File.WriteAllText("schema.sql", schema);
+    Console.WriteLine("[Schema] SQL Server compatible schema script written to schema.sql");
+    return;
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (connectionString.Contains(".db") || connectionString.Contains("filename=", StringComparison.OrdinalIgnoreCase))
