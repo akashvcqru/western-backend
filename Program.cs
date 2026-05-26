@@ -10,7 +10,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add Connection String & DbContext
 var connectionString = builder.Configuration.GetConnectionString("constr") ?? "Data Source=western.db";
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connectionString));
+{
+    if (connectionString.Contains(".db") || connectionString.Contains("filename=", StringComparison.OrdinalIgnoreCase))
+    {
+        options.UseSqlite(connectionString);
+    }
+    else
+    {
+        options.UseSqlServer(connectionString);
+    }
+});
 
 // Add CORS policy
 builder.Services.AddCors(options =>
