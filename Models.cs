@@ -80,6 +80,19 @@ namespace western_backend.Models
         public string Value { get; set; } = string.Empty; // JSON serialization
     }
 
+    public class Testimonial
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public string Designation { get; set; } = string.Empty;
+        public string Company { get; set; } = string.Empty;
+        public string Quote { get; set; } = string.Empty;
+        public int Rating { get; set; } = 5;
+        public string Category { get; set; } = string.Empty;
+        public string Status { get; set; } = "Active";
+        public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
+    }
+
     public class Product
     {
         public string Id { get; set; } = string.Empty;

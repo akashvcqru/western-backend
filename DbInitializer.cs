@@ -29,6 +29,19 @@ namespace western_backend
                         Status TEXT
                     );");
 
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE TABLE IF NOT EXISTS Testimonials (
+                        Id TEXT PRIMARY KEY,
+                        Author TEXT,
+                        Designation TEXT,
+                        Company TEXT,
+                        Quote TEXT,
+                        Rating INTEGER,
+                        Category TEXT,
+                        Status TEXT,
+                        CreatedAt TEXT
+                    );");
+
                 try
                 {
                     context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN SubCategory TEXT;");
@@ -95,8 +108,100 @@ namespace western_backend
                 PropertyNameCaseInsensitive = true
             };
 
-            // 3. Seed Categories
+            // Build hierarchy map from navigation.json
+            var subCatToParentMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var navPath = Path.Combine(dataPath, "navigation.json");
+            if (File.Exists(navPath))
+            {
+                try
+                {
+                    var navJson = File.ReadAllText(navPath);
+                    using (var doc = JsonDocument.Parse(navJson))
+                    {
+                        foreach (var catElem in doc.RootElement.EnumerateArray())
+                        {
+                            string catId = catElem.GetProperty("id").GetString() ?? "";
+                            if (catElem.TryGetProperty("columns", out var colsElem))
+                            {
+                                foreach (var colElem in colsElem.EnumerateArray())
+                                {
+                                    if (colElem.TryGetProperty("items", out var itemsElem))
+                                    {
+                                        foreach (var itemElem in itemsElem.EnumerateArray())
+                                        {
+                                            string subSlug = itemElem.GetProperty("slug").GetString() ?? "";
+                                            if (!string.IsNullOrEmpty(subSlug))
+                                            {
+                                                subCatToParentMap[subSlug] = catId;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error parsing navigation.json: {ex.Message}");
+                }
+            }
+
+            // 3. Seed Root Categories
             if (!context.Categories.Any())
+            {
+                try
+                {
+                    var rootCategories = new List<Category>
+                    {
+                        new Category
+                        {
+                            Id = "office-furniture",
+                            Slug = "office-furniture",
+                            Name = "Office Furniture",
+                            Description = "Elevate your work environment with our ergonomic desking systems, executive series tables, and collaborative storage units.",
+                            Image = "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2070&auto=format&fit=crop",
+                            Status = "Active"
+                        },
+                        new Category
+                        {
+                            Id = "home-furniture",
+                            Slug = "home-furniture",
+                            Name = "Home Furniture",
+                            Description = "Craft a sanctuary of style and comfort. Handcrafted tables, modular kitchens, and elegant storage layouts for modern living.",
+                            Image = "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=2070&auto=format&fit=crop",
+                            Status = "Active"
+                        },
+                        new Category
+                        {
+                            Id = "chairs",
+                            Slug = "chairs",
+                            Name = "Chairs",
+                            Description = "Engineered for absolute posture support and long-term seating comfort. Explore our CEO, executive, and staff collections.",
+                            Image = "https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?q=80&w=2070&auto=format&fit=crop",
+                            Status = "Active"
+                        },
+                        new Category
+                        {
+                            Id = "interior-design",
+                            Slug = "interior-design",
+                            Name = "Interior Design",
+                            Description = "Transform your corporate space. Complete turnkey workspace layouts, partitions, false ceilings, and flooring design solutions.",
+                            Image = "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=2071&auto=format&fit=crop",
+                            Status = "Active"
+                        }
+                    };
+                    context.Categories.AddRange(rootCategories);
+                    context.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error seeding categories: {ex.Message}");
+                }
+            }
+
+            // 3b. Seed SubCategories
+            if (!context.SubCategories.Any())
             {
                 var filePath = Path.Combine(dataPath, "categories.json");
                 if (File.Exists(filePath))
@@ -107,27 +212,37 @@ namespace western_backend
                         var rawCats = JsonSerializer.Deserialize<List<JsonElement>>(json, jsonOptions);
                         if (rawCats != null)
                         {
-                            var cats = rawCats.Select(c => {
+                            var subCats = rawCats.Select(c => {
                                 string id = c.GetProperty("id").GetString() ?? "";
                                 string slug = c.TryGetProperty("slug", out var s) ? (s.GetString() ?? id) : id;
-                                return new Category
+                                string name = c.GetProperty("name").GetString() ?? "";
+                                string description = c.GetProperty("description").GetString() ?? "";
+                                string image = c.GetProperty("image").GetString() ?? "";
+                                
+                                // Find parent category
+                                if (!subCatToParentMap.TryGetValue(slug, out var parentId))
+                                {
+                                    parentId = GetParentCategoryFallback(slug);
+                                }
+                                
+                                return new SubCategory
                                 {
                                     Id = id,
                                     Slug = slug,
-                                    Name = c.GetProperty("name").GetString() ?? "",
-                                    Description = c.GetProperty("description").GetString() ?? "",
-                                    Image = c.GetProperty("image").GetString() ?? "",
-                                    Count = 0,
+                                    Name = name,
+                                    Description = description,
+                                    Image = image,
+                                    CategoryId = parentId,
                                     Status = "Active"
                                 };
                             }).ToList();
-                            context.Categories.AddRange(cats);
+                            context.SubCategories.AddRange(subCats);
                             context.SaveChanges();
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error seeding categories: {ex.Message}");
+                        Console.WriteLine($"Error seeding subcategories: {ex.Message}");
                     }
                 }
             }
@@ -238,6 +353,15 @@ namespace western_backend
                                 {
                                     p.Stock = 15;
                                 }
+
+                                // Map category and subcategory
+                                string originalCategory = p.Category;
+                                p.SubCategory = originalCategory;
+                                if (!subCatToParentMap.TryGetValue(originalCategory, out var parentId))
+                                {
+                                    parentId = GetParentCategoryFallback(originalCategory);
+                                }
+                                p.Category = parentId;
                             }
                             context.Products.AddRange(products);
                             context.SaveChanges();
@@ -268,6 +392,58 @@ namespace western_backend
             {
                 Console.WriteLine($"Error updating category counts: {ex.Message}");
             }
+
+            // 10. Seed Testimonials from site-content.json
+            if (!context.Testimonials.Any())
+            {
+                var filePath = Path.Combine(dataPath, "site-content.json");
+                if (File.Exists(filePath))
+                {
+                    try
+                    {
+                        var json = File.ReadAllText(filePath);
+                        using (var doc = JsonDocument.Parse(json))
+                        {
+                            if (doc.RootElement.TryGetProperty("testimonialsPage", out var testimonialsPageElem) &&
+                                testimonialsPageElem.TryGetProperty("items", out var itemsElem))
+                            {
+                                var testimonials = new List<Testimonial>();
+                                foreach (var item in itemsElem.EnumerateArray())
+                                {
+                                    testimonials.Add(new Testimonial
+                                    {
+                                        Id = Guid.NewGuid().ToString(),
+                                        Author = item.GetProperty("author").GetString() ?? "",
+                                        Designation = item.GetProperty("designation").GetString() ?? "",
+                                        Company = item.GetProperty("company").GetString() ?? "",
+                                        Quote = item.GetProperty("quote").GetString() ?? "",
+                                        Rating = item.TryGetProperty("rating", out var r) ? r.GetInt32() : 5,
+                                        Category = item.TryGetProperty("category", out var c) ? (c.GetString() ?? "") : "",
+                                        Status = "Active",
+                                        CreatedAt = DateTime.UtcNow
+                                    });
+                                }
+                                context.Testimonials.AddRange(testimonials);
+                                context.SaveChanges();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error seeding testimonials: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private static string GetParentCategoryFallback(string subCatSlug)
+        {
+            var s = subCatSlug.ToLower();
+            if (s.Contains("chair")) return "chairs";
+            if (s.Contains("sofa")) return "chairs";
+            if (s.Contains("desk") || s.Contains("table") || s.Contains("workstation") || s.Contains("storage") || s.Contains("partition")) return "office-furniture";
+            if (s.Contains("interior") || s.Contains("design") || s.Contains("ceiling")) return "interior-design";
+            return "home-furniture";
         }
     }
 }
