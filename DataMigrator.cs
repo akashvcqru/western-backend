@@ -31,6 +31,10 @@ namespace western_backend
                 return;
             }
 
+            // Set command timeouts
+            sourceDb.Database.SetCommandTimeout(300);
+            targetDb.Database.SetCommandTimeout(300);
+
             // Ensure target database and tables are created
             Console.WriteLine("[Migration] Ensuring target database and schema exist...");
             targetDb.Database.EnsureCreated();
@@ -38,9 +42,10 @@ namespace western_backend
             // Migrate Users
             Console.WriteLine("[Migration] Migrating Users...");
             var users = sourceDb.Users.AsNoTracking().ToList();
+            var existingUserIds = targetDb.Users.Select(u => u.Id).ToHashSet();
             foreach (var user in users)
             {
-                if (!targetDb.Users.Any(u => u.Id == user.Id))
+                if (!existingUserIds.Contains(user.Id))
                 {
                     targetDb.Users.Add(user);
                 }
@@ -50,9 +55,10 @@ namespace western_backend
             // Migrate Categories
             Console.WriteLine("[Migration] Migrating Categories...");
             var categories = sourceDb.Categories.AsNoTracking().ToList();
+            var existingCategoryIds = targetDb.Categories.Select(c => c.Id).ToHashSet();
             foreach (var cat in categories)
             {
-                if (!targetDb.Categories.Any(c => c.Id == cat.Id))
+                if (!existingCategoryIds.Contains(cat.Id))
                 {
                     targetDb.Categories.Add(cat);
                 }
@@ -62,9 +68,10 @@ namespace western_backend
             // Migrate SubCategories
             Console.WriteLine("[Migration] Migrating SubCategories...");
             var subCategories = sourceDb.SubCategories.AsNoTracking().ToList();
+            var existingSubCategoryIds = targetDb.SubCategories.Select(s => s.Id).ToHashSet();
             foreach (var subCat in subCategories)
             {
-                if (!targetDb.SubCategories.Any(s => s.Id == subCat.Id))
+                if (!existingSubCategoryIds.Contains(subCat.Id))
                 {
                     targetDb.SubCategories.Add(subCat);
                 }
@@ -74,9 +81,10 @@ namespace western_backend
             // Migrate Brands
             Console.WriteLine("[Migration] Migrating Brands...");
             var brands = sourceDb.Brands.AsNoTracking().ToList();
+            var existingBrandIds = targetDb.Brands.Select(b => b.Id).ToHashSet();
             foreach (var brand in brands)
             {
-                if (!targetDb.Brands.Any(b => b.Id == brand.Id))
+                if (!existingBrandIds.Contains(brand.Id))
                 {
                     targetDb.Brands.Add(brand);
                 }
@@ -88,6 +96,7 @@ namespace western_backend
             var galleryItems = sourceDb.Gallery.AsNoTracking().ToList();
             if (galleryItems.Any())
             {
+                var existingGalleryIds = targetDb.Gallery.Select(g => g.Id).ToHashSet();
                 using (var transaction = targetDb.Database.BeginTransaction())
                 {
                     try
@@ -95,7 +104,7 @@ namespace western_backend
                         targetDb.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Gallery ON");
                         foreach (var item in galleryItems)
                         {
-                            if (!targetDb.Gallery.Any(g => g.Id == item.Id))
+                            if (!existingGalleryIds.Contains(item.Id))
                             {
                                 targetDb.Gallery.Add(item);
                             }
@@ -109,9 +118,10 @@ namespace western_backend
                         Console.WriteLine($"[Migration] Warning while migrating Gallery (trying without IDENTITY_INSERT): {ex.Message}");
                         transaction.Rollback();
                         
+                        var existingGalleryTitles = targetDb.Gallery.Select(g => g.Title).ToHashSet();
                         foreach (var item in galleryItems)
                         {
-                            if (!targetDb.Gallery.Any(g => g.Title == item.Title && g.Image == item.Image))
+                            if (!existingGalleryTitles.Contains(item.Title))
                             {
                                 var newItem = new GalleryItem
                                 {
@@ -130,9 +140,10 @@ namespace western_backend
             // Migrate Blogs
             Console.WriteLine("[Migration] Migrating Blogs...");
             var blogs = sourceDb.Blogs.AsNoTracking().ToList();
+            var existingBlogIds = targetDb.Blogs.Select(b => b.Id).ToHashSet();
             foreach (var blog in blogs)
             {
-                if (!targetDb.Blogs.Any(b => b.Id == blog.Id))
+                if (!existingBlogIds.Contains(blog.Id))
                 {
                     targetDb.Blogs.Add(blog);
                 }
@@ -142,9 +153,10 @@ namespace western_backend
             // Migrate Settings
             Console.WriteLine("[Migration] Migrating Settings...");
             var settings = sourceDb.Settings.AsNoTracking().ToList();
+            var existingSettingKeys = targetDb.Settings.Select(s => s.Key).ToHashSet();
             foreach (var setting in settings)
             {
-                if (!targetDb.Settings.Any(s => s.Key == setting.Key))
+                if (!existingSettingKeys.Contains(setting.Key))
                 {
                     targetDb.Settings.Add(setting);
                 }
@@ -154,9 +166,10 @@ namespace western_backend
             // Migrate Products
             Console.WriteLine("[Migration] Migrating Products...");
             var products = sourceDb.Products.AsNoTracking().ToList();
+            var existingProductIds = targetDb.Products.Select(p => p.Id).ToHashSet();
             foreach (var product in products)
             {
-                if (!targetDb.Products.Any(p => p.Id == product.Id))
+                if (!existingProductIds.Contains(product.Id))
                 {
                     targetDb.Products.Add(product);
                 }
@@ -166,9 +179,10 @@ namespace western_backend
             // Migrate Testimonials
             Console.WriteLine("[Migration] Migrating Testimonials...");
             var testimonials = sourceDb.Testimonials.AsNoTracking().ToList();
+            var existingTestimonialIds = targetDb.Testimonials.Select(t => t.Id).ToHashSet();
             foreach (var testimonial in testimonials)
             {
-                if (!targetDb.Testimonials.Any(t => t.Id == testimonial.Id))
+                if (!existingTestimonialIds.Contains(testimonial.Id))
                 {
                     targetDb.Testimonials.Add(testimonial);
                 }
@@ -178,9 +192,10 @@ namespace western_backend
             // Migrate Catalogues
             Console.WriteLine("[Migration] Migrating Catalogues...");
             var catalogues = sourceDb.Catalogues.AsNoTracking().ToList();
+            var existingCatalogueIds = targetDb.Catalogues.Select(c => c.Id).ToHashSet();
             foreach (var catalogue in catalogues)
             {
-                if (!targetDb.Catalogues.Any(c => c.Id == catalogue.Id))
+                if (!existingCatalogueIds.Contains(catalogue.Id))
                 {
                     targetDb.Catalogues.Add(catalogue);
                 }
@@ -192,6 +207,7 @@ namespace western_backend
             var inquiries = sourceDb.Inquiries.AsNoTracking().ToList();
             if (inquiries.Any())
             {
+                var existingInquiryIds = targetDb.Inquiries.Select(i => i.Id).ToHashSet();
                 using (var transaction = targetDb.Database.BeginTransaction())
                 {
                     try
@@ -199,7 +215,7 @@ namespace western_backend
                         targetDb.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Inquiries ON");
                         foreach (var item in inquiries)
                         {
-                            if (!targetDb.Inquiries.Any(i => i.Id == item.Id))
+                            if (!existingInquiryIds.Contains(item.Id))
                             {
                                 targetDb.Inquiries.Add(item);
                             }
@@ -213,9 +229,10 @@ namespace western_backend
                         Console.WriteLine($"[Migration] Warning while migrating Inquiries (trying without IDENTITY_INSERT): {ex.Message}");
                         transaction.Rollback();
                         
+                        var existingInquiryEmails = targetDb.Inquiries.Select(i => i.Email).ToHashSet();
                         foreach (var item in inquiries)
                         {
-                            if (!targetDb.Inquiries.Any(i => i.Email == item.Email && i.Date == item.Date && i.Message == item.Message))
+                            if (!existingInquiryEmails.Contains(item.Email))
                             {
                                 var newItem = new Inquiry
                                 {

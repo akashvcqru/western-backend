@@ -49,22 +49,29 @@ namespace western_backend.Controllers
                     c.Description.ToLower().Contains(s));
             }
 
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             int totalItems = await query.CountAsync();
+            Console.WriteLine($"[Perf] Categories CountAsync took {sw.ElapsedMilliseconds} ms");
 
+            sw.Restart();
             var categories = await query
                 .OrderBy(c => c.Name)
                 .Skip((page - 1) * limit)
                 .Take(limit)
                 .ToListAsync();
+            Console.WriteLine($"[Perf] Categories ToListAsync took {sw.ElapsedMilliseconds} ms");
 
-            // Calculate product counts dynamically
-            var products = await _context.Products.ToListAsync();
+            sw.Restart();
+            // Calculate product counts dynamically using database count queries
             foreach (var cat in categories)
             {
-                cat.Count = products.Count(p =>
-                    string.Equals(p.Category, cat.Id, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(p.Category, cat.Slug, StringComparison.OrdinalIgnoreCase));
+                var catId = cat.Id.ToLower();
+                var catSlug = (cat.Slug ?? "").ToLower();
+                cat.Count = await _context.Products.CountAsync(p =>
+                    p.Category.ToLower() == catId ||
+                    p.Category.ToLower() == catSlug);
             }
+            Console.WriteLine($"[Perf] Product Count loops took {sw.ElapsedMilliseconds} ms");
 
             return Ok(ApiResponse.Paginated(categories, page, totalItems, limit));
         }
@@ -135,7 +142,6 @@ namespace western_backend.Controllers
             category.Image = request.Image;
             category.Status = request.Status;
 
-            _context.Categories.Update(category);
             await _context.SaveChangesAsync();
 
             return Ok(ApiResponse.Success(category, "Category updated successfully"));
@@ -260,7 +266,6 @@ namespace western_backend.Controllers
             subCategory.CategoryId = request.CategoryId;
             subCategory.Status = request.Status;
 
-            _context.SubCategories.Update(subCategory);
             await _context.SaveChangesAsync();
 
             return Ok(ApiResponse.Success(subCategory, "SubCategory updated successfully"));

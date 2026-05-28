@@ -8,7 +8,7 @@ using western_backend.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Connection String & DbContext
-var connectionString = builder.Configuration.GetConnectionString("constr") ?? "Data Source=western.db";
+var connectionString = builder.Configuration.GetConnectionString("constr") ?? "Data Source=western.db;Cache=Shared;Busy Timeout=5000";
 
 if (args.Contains("--migrate"))
 {
@@ -28,11 +28,15 @@ if (args.Contains("--generate-schema"))
     return;
 }
 
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (connectionString.Contains(".db") || connectionString.Contains("filename=", StringComparison.OrdinalIgnoreCase))
     {
-        options.UseSqlite(connectionString);
+        options.UseSqlite(connectionString, sqliteOptions =>
+        {
+            sqliteOptions.CommandTimeout(30);
+        });
     }
     else
     {
