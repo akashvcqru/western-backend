@@ -132,6 +132,19 @@ if (app.Environment.IsDevelopment() || true) // Enable Swagger in all environmen
 
 app.UseCors("AllowAll");
 
+// Configure Static Files for serving uploads
+app.UseStaticFiles(); // Default wwwroot
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
+
 // app.UseHttpsRedirection();
 
 app.UseAuthentication();

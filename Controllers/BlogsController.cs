@@ -120,7 +120,7 @@ namespace western_backend.Controllers
                 Title = request.Title,
                 Excerpt = request.Excerpt,
                 Category = request.Category,
-                Image = request.Image,
+                Image = FileStorageService.SaveBase64File(request.Image, "blog"),
                 Author = request.Author,
                 AuthorRole = request.AuthorRole,
                 Tags = request.Tags,
@@ -157,7 +157,7 @@ namespace western_backend.Controllers
             blog.Title = request.Title;
             blog.Excerpt = request.Excerpt;
             blog.Category = request.Category;
-            blog.Image = request.Image;
+            blog.Image = FileStorageService.SaveBase64File(request.Image, "blog", blog.Image);
             blog.Author = request.Author;
             blog.AuthorRole = request.AuthorRole;
             blog.Tags = request.Tags;
@@ -181,6 +181,7 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"Blog '{id}' not found"));
             }
 
+            FileStorageService.DeleteFile(blog.Image);
             _context.Blogs.Remove(blog);
             await _context.SaveChangesAsync();
 

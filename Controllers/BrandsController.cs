@@ -85,7 +85,7 @@ namespace western_backend.Controllers
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = request.Name,
-                Url = request.Url,
+                Url = FileStorageService.SaveBase64File(request.Url, "brand"),
                 Link = request.Link
             };
 
@@ -107,7 +107,7 @@ namespace western_backend.Controllers
             }
 
             brand.Name = request.Name;
-            brand.Url = request.Url;
+            brand.Url = FileStorageService.SaveBase64File(request.Url, "brand", brand.Url);
             brand.Link = request.Link;
 
             _context.Brands.Update(brand);
@@ -126,6 +126,7 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"Brand '{id}' not found"));
             }
 
+            FileStorageService.DeleteFile(brand.Url);
             _context.Brands.Remove(brand);
             await _context.SaveChangesAsync();
 

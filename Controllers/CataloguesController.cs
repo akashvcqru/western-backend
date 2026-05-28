@@ -139,8 +139,8 @@ namespace western_backend.Controllers
                 Title = request.Title,
                 Description = request.Description,
                 Category = request.Category,
-                Image = request.Image,
-                PdfData = request.PdfData,
+                Image = FileStorageService.SaveBase64File(request.Image, "catalogue"),
+                PdfData = FileStorageService.SaveBase64File(request.PdfData, "catalogue/pdfs"),
                 PdfFileName = request.PdfFileName,
                 Status = request.Status,
                 CreatedAt = System.DateTime.UtcNow
@@ -169,13 +169,13 @@ namespace western_backend.Controllers
             item.Title = request.Title;
             item.Description = request.Description;
             item.Category = request.Category;
-            item.Image = request.Image;
+            item.Image = FileStorageService.SaveBase64File(request.Image, "catalogue", item.Image);
             item.Status = request.Status;
 
             // Only update PDF if a new one is provided
             if (!string.IsNullOrEmpty(request.PdfData))
             {
-                item.PdfData = request.PdfData;
+                item.PdfData = FileStorageService.SaveBase64File(request.PdfData, "catalogue/pdfs", item.PdfData);
                 item.PdfFileName = request.PdfFileName;
             }
 
@@ -198,6 +198,8 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"Catalogue '{id}' not found"));
             }
 
+            FileStorageService.DeleteFile(item.Image);
+            FileStorageService.DeleteFile(item.PdfData);
             _context.Catalogues.Remove(item);
             await _context.SaveChangesAsync();
 

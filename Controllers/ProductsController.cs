@@ -100,6 +100,39 @@ namespace western_backend.Controllers
                 uniqueId = $"{slug}-{counter++}";
             }
 
+            // Process primary image
+            if (!string.IsNullOrEmpty(product.Image))
+            {
+                product.Image = FileStorageService.SaveBase64File(product.Image, "product");
+            }
+
+            // Process secondary images
+            if (product.Images != null && product.Images.Count > 0)
+            {
+                for (int i = 0; i < product.Images.Count; i++)
+                {
+                    product.Images[i] = FileStorageService.SaveBase64File(product.Images[i], "product");
+                }
+            }
+
+            // Process blueprint image
+            if (!string.IsNullOrEmpty(product.BlueprintImage))
+            {
+                product.BlueprintImage = FileStorageService.SaveBase64File(product.BlueprintImage, "product");
+            }
+
+            // Process resources
+            if (product.Resources != null && product.Resources.Count > 0)
+            {
+                foreach (var res in product.Resources)
+                {
+                    if (!string.IsNullOrEmpty(res.FileData))
+                    {
+                        res.FileData = FileStorageService.SaveBase64File(res.FileData, "product/resources");
+                    }
+                }
+            }
+
             product.Id = uniqueId;
             product.Slug = uniqueId;
 
@@ -128,23 +161,58 @@ namespace western_backend.Controllers
             product.Status = updatedProduct.Status;
             product.Stock = updatedProduct.Stock;
             product.Description = updatedProduct.Description;
-            product.Images = updatedProduct.Images;
-            product.Image = updatedProduct.Image;
             product.CatNo = updatedProduct.CatNo;
-            product.BlueprintImage = updatedProduct.BlueprintImage;
             product.Material = updatedProduct.Material;
             product.Finish = updatedProduct.Finish;
             product.Size = updatedProduct.Size;
             product.Features = updatedProduct.Features;
             product.Specifications = updatedProduct.Specifications;
             product.Dimensions = updatedProduct.Dimensions;
-            product.Resources = updatedProduct.Resources;
             product.Variants = updatedProduct.Variants;
             product.Swatches = updatedProduct.Swatches;
             product.DetailsTitle = updatedProduct.DetailsTitle;
             product.DetailsText1 = updatedProduct.DetailsText1;
             product.DetailsText2 = updatedProduct.DetailsText2;
             product.QuickSpecs = updatedProduct.QuickSpecs;
+
+            // Process files and clean up old ones
+            product.Image = FileStorageService.SaveBase64File(updatedProduct.Image ?? "", "product", product.Image);
+
+            var oldImages = product.Images ?? new List<string>();
+            var newImages = updatedProduct.Images ?? new List<string>();
+            foreach (var img in oldImages)
+            {
+                if (!newImages.Contains(img))
+                {
+                    FileStorageService.DeleteFile(img);
+                }
+            }
+            var savedImages = new List<string>();
+            foreach (var img in newImages)
+            {
+                savedImages.Add(FileStorageService.SaveBase64File(img, "product"));
+            }
+            product.Images = savedImages;
+
+            product.BlueprintImage = FileStorageService.SaveBase64File(updatedProduct.BlueprintImage ?? "", "product", product.BlueprintImage);
+
+            var oldResources = product.Resources ?? new List<ResourceItem>();
+            var newResources = updatedProduct.Resources ?? new List<ResourceItem>();
+            foreach (var oldRes in oldResources)
+            {
+                if (!string.IsNullOrEmpty(oldRes.FileData) && !newResources.Any(r => r.FileData == oldRes.FileData))
+                {
+                    FileStorageService.DeleteFile(oldRes.FileData);
+                }
+            }
+            foreach (var newRes in newResources)
+            {
+                if (!string.IsNullOrEmpty(newRes.FileData))
+                {
+                    newRes.FileData = FileStorageService.SaveBase64File(newRes.FileData, "product/resources");
+                }
+            }
+            product.Resources = newResources;
 
             if (!string.IsNullOrEmpty(updatedProduct.Slug))
                 product.Slug = updatedProduct.Slug;
@@ -163,6 +231,23 @@ namespace western_backend.Controllers
             if (product == null)
             {
                 return NotFound(ApiResponse.Error($"Product with ID '{id}' not found"));
+            }
+
+            FileStorageService.DeleteFile(product.Image);
+            if (product.Images != null)
+            {
+                foreach (var img in product.Images)
+                {
+                    FileStorageService.DeleteFile(img);
+                }
+            }
+            FileStorageService.DeleteFile(product.BlueprintImage);
+            if (product.Resources != null)
+            {
+                foreach (var res in product.Resources)
+                {
+                    FileStorageService.DeleteFile(res.FileData);
+                }
             }
 
             _context.Products.Remove(product);

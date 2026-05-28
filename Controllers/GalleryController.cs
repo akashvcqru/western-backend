@@ -88,7 +88,7 @@ namespace western_backend.Controllers
             {
                 Title = request.Title,
                 Category = request.Category,
-                Image = request.Image
+                Image = FileStorageService.SaveBase64File(request.Image, "gallery")
             };
 
             _context.Gallery.Add(item);
@@ -110,7 +110,7 @@ namespace western_backend.Controllers
 
             item.Title = request.Title;
             item.Category = request.Category;
-            item.Image = request.Image;
+            item.Image = FileStorageService.SaveBase64File(request.Image, "gallery", item.Image);
 
             _context.Gallery.Update(item);
             await _context.SaveChangesAsync();
@@ -128,6 +128,7 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"Gallery item '{id}' not found"));
             }
 
+            FileStorageService.DeleteFile(item.Image);
             _context.Gallery.Remove(item);
             await _context.SaveChangesAsync();
 

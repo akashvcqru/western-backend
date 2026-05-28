@@ -115,7 +115,7 @@ namespace western_backend.Controllers
                 Slug = uniqueId,
                 Name = request.Name,
                 Description = request.Description,
-                Image = request.Image,
+                Image = FileStorageService.SaveBase64File(request.Image, "category"),
                 Status = request.Status,
                 Count = 0
             };
@@ -139,7 +139,7 @@ namespace western_backend.Controllers
 
             category.Name = request.Name;
             category.Description = request.Description;
-            category.Image = request.Image;
+            category.Image = FileStorageService.SaveBase64File(request.Image, "category", category.Image);
             category.Status = request.Status;
 
             await _context.SaveChangesAsync();
@@ -157,6 +157,7 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"Category '{id}' not found"));
             }
 
+            FileStorageService.DeleteFile(category.Image);
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
 
@@ -238,7 +239,7 @@ namespace western_backend.Controllers
                 Slug = uniqueId,
                 Name = request.Name,
                 Description = request.Description,
-                Image = request.Image,
+                Image = FileStorageService.SaveBase64File(request.Image, "subcategory"),
                 CategoryId = request.CategoryId,
                 Status = request.Status
             };
@@ -262,7 +263,7 @@ namespace western_backend.Controllers
 
             subCategory.Name = request.Name;
             subCategory.Description = request.Description;
-            subCategory.Image = request.Image;
+            subCategory.Image = FileStorageService.SaveBase64File(request.Image, "subcategory", subCategory.Image);
             subCategory.CategoryId = request.CategoryId;
             subCategory.Status = request.Status;
 
@@ -281,6 +282,7 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"SubCategory '{id}' not found"));
             }
 
+            FileStorageService.DeleteFile(subCategory.Image);
             _context.SubCategories.Remove(subCategory);
             await _context.SaveChangesAsync();
 

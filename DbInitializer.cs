@@ -391,12 +391,13 @@ namespace western_backend
             try
             {
                 var cats = context.Categories.ToList();
-                var prods = context.Products.ToList();
                 foreach (var cat in cats)
                 {
-                    cat.Count = prods.Count(p => 
-                        string.Equals(p.Category, cat.Id, StringComparison.OrdinalIgnoreCase) || 
-                        string.Equals(p.Category, cat.Slug, StringComparison.OrdinalIgnoreCase)
+                    var catId = cat.Id.ToLower();
+                    var catSlug = (cat.Slug ?? "").ToLower();
+                    cat.Count = context.Products.Count(p => 
+                        p.Category.ToLower() == catId || 
+                        p.Category.ToLower() == catSlug
                     );
                 }
                 context.SaveChanges();
@@ -463,7 +464,7 @@ namespace western_backend
                             foreach (var item in doc.RootElement.EnumerateArray())
                             {
                                 catalogues.Add(new Catalogue
-                                {
+                                  {
                                     Id = Guid.NewGuid().ToString(),
                                     Title = item.GetProperty("title").GetString() ?? "",
                                     Description = item.GetProperty("description").GetString() ?? "",
@@ -485,6 +486,223 @@ namespace western_backend
                     }
                 }
             }
+
+            // 12. Run Base64 data migration to files
+            try
+            {
+                MigrateBase64ToFiles(context);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error migrating legacy base64 data: {ex.Message}");
+            }
+        }
+
+        public static void MigrateBase64ToFiles(AppDbContext context)
+        {
+            Console.WriteLine("[Migration] Starting migration of base64 data to physical files...");
+            
+            // 1. Categories
+            var categories = context.Categories.ToList();
+            foreach (var cat in categories)
+            {
+                if (FileStorageService.IsBase64DataUrl(cat.Image))
+                {
+                    try
+                    {
+                        cat.Image = FileStorageService.SaveBase64File(cat.Image, "category");
+                        Console.WriteLine($"[Migration] Migrated image for category: {cat.Name}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate image for category {cat.Name}: {ex.Message}");
+                    }
+                }
+            }
+
+            // 2. SubCategories
+            var subCategories = context.SubCategories.ToList();
+            foreach (var sub in subCategories)
+            {
+                if (FileStorageService.IsBase64DataUrl(sub.Image))
+                {
+                    try
+                    {
+                        sub.Image = FileStorageService.SaveBase64File(sub.Image, "subcategory");
+                        Console.WriteLine($"[Migration] Migrated image for subcategory: {sub.Name}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate image for subcategory {sub.Name}: {ex.Message}");
+                    }
+                }
+            }
+
+            // 3. Brands
+            var brands = context.Brands.ToList();
+            foreach (var brand in brands)
+            {
+                if (FileStorageService.IsBase64DataUrl(brand.Url))
+                {
+                    try
+                    {
+                        brand.Url = FileStorageService.SaveBase64File(brand.Url, "brand");
+                        Console.WriteLine($"[Migration] Migrated image for brand: {brand.Name}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate image for brand {brand.Name}: {ex.Message}");
+                    }
+                }
+            }
+
+            // 4. Gallery
+            var galleryItems = context.Gallery.ToList();
+            foreach (var item in galleryItems)
+            {
+                if (FileStorageService.IsBase64DataUrl(item.Image))
+                {
+                    try
+                    {
+                        item.Image = FileStorageService.SaveBase64File(item.Image, "gallery");
+                        Console.WriteLine($"[Migration] Migrated image for gallery item: {item.Title}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate image for gallery item {item.Title}: {ex.Message}");
+                    }
+                }
+            }
+
+            // 5. Blogs
+            var blogs = context.Blogs.ToList();
+            foreach (var blog in blogs)
+            {
+                if (FileStorageService.IsBase64DataUrl(blog.Image))
+                {
+                    try
+                    {
+                        blog.Image = FileStorageService.SaveBase64File(blog.Image, "blog");
+                        Console.WriteLine($"[Migration] Migrated image for blog: {blog.Title}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate image for blog {blog.Title}: {ex.Message}");
+                    }
+                }
+            }
+
+            // 6. Catalogues
+            var catalogues = context.Catalogues.ToList();
+            foreach (var cat in catalogues)
+            {
+                if (FileStorageService.IsBase64DataUrl(cat.Image))
+                {
+                    try
+                    {
+                        cat.Image = FileStorageService.SaveBase64File(cat.Image, "catalogue");
+                        Console.WriteLine($"[Migration] Migrated cover image for catalogue: {cat.Title}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate cover image for catalogue {cat.Title}: {ex.Message}");
+                    }
+                }
+                if (FileStorageService.IsBase64DataUrl(cat.PdfData))
+                {
+                    try
+                    {
+                        cat.PdfData = FileStorageService.SaveBase64File(cat.PdfData, "catalogue/pdfs");
+                        Console.WriteLine($"[Migration] Migrated PDF data for catalogue: {cat.Title}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate PDF data for catalogue {cat.Title}: {ex.Message}");
+                    }
+                }
+            }
+
+            // 7. Products
+            var products = context.Products.ToList();
+            foreach (var prod in products)
+            {
+                bool changed = false;
+                if (FileStorageService.IsBase64DataUrl(prod.Image ?? ""))
+                {
+                    try
+                    {
+                        prod.Image = FileStorageService.SaveBase64File(prod.Image!, "product");
+                        changed = true;
+                        Console.WriteLine($"[Migration] Migrated primary image for product: {prod.Name}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate primary image for product {prod.Name}: {ex.Message}");
+                    }
+                }
+
+                if (prod.Images != null && prod.Images.Count > 0)
+                {
+                    for (int i = 0; i < prod.Images.Count; i++)
+                    {
+                        if (FileStorageService.IsBase64DataUrl(prod.Images[i]))
+                        {
+                            try
+                            {
+                                prod.Images[i] = FileStorageService.SaveBase64File(prod.Images[i], "product");
+                                changed = true;
+                                Console.WriteLine($"[Migration] Migrated secondary image {i+1} for product: {prod.Name}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[Migration] Failed to migrate secondary image {i+1} for product {prod.Name}: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
+                if (FileStorageService.IsBase64DataUrl(prod.BlueprintImage ?? ""))
+                {
+                    try
+                    {
+                        prod.BlueprintImage = FileStorageService.SaveBase64File(prod.BlueprintImage!, "product");
+                        changed = true;
+                        Console.WriteLine($"[Migration] Migrated blueprint image for product: {prod.Name}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate blueprint image for product {prod.Name}: {ex.Message}");
+                    }
+                }
+
+                if (prod.Resources != null && prod.Resources.Count > 0)
+                {
+                    foreach (var res in prod.Resources)
+                    {
+                        if (FileStorageService.IsBase64DataUrl(res.FileData ?? ""))
+                        {
+                            try
+                            {
+                                res.FileData = FileStorageService.SaveBase64File(res.FileData!, "product/resources");
+                                changed = true;
+                                Console.WriteLine($"[Migration] Migrated resource '{res.Title}' for product: {prod.Name}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"[Migration] Failed to migrate resource '{res.Title}' for product {prod.Name}: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
+                if (changed)
+                {
+                    context.Entry(prod).State = EntityState.Modified;
+                }
+            }
+
+            context.SaveChanges();
+            Console.WriteLine("[Migration] Base64 migration completed successfully.");
         }
 
         private static string GetParentCategoryFallback(string subCatSlug)
