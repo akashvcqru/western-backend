@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -701,8 +702,78 @@ namespace western_backend
                 }
             }
 
+            // 8. Settings
+            var settings = context.Settings.ToList();
+            foreach (var setting in settings)
+            {
+                if (setting.Value.Contains("data:") && setting.Value.Contains(";base64,"))
+                {
+                    try
+                    {
+                        var node = JsonNode.Parse(setting.Value);
+                        var moduleName = setting.Key.ToLower().Replace("bdm_settings_", "");
+                        var processedNode = ProcessSettingJsonNode(node, moduleName);
+                        if (processedNode != null)
+                        {
+                            setting.Value = processedNode.ToJsonString();
+                            context.Entry(setting).State = EntityState.Modified;
+                            Console.WriteLine($"[Migration] Migrated base64 images in setting: {setting.Key}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate setting {setting.Key}: {ex.Message}");
+                    }
+                }
+            }
+
             context.SaveChanges();
             Console.WriteLine("[Migration] Base64 migration completed successfully.");
+        }
+
+        private static JsonNode? ProcessSettingJsonNode(JsonNode? node, string moduleName)
+        {
+            if (node == null) return null;
+
+            if (node is JsonObject obj)
+            {
+                var keys = obj.Select(k => k.Key).ToList();
+                foreach (var key in keys)
+                {
+                    var val = obj[key];
+                    if (val is JsonValue jsonVal && jsonVal.TryGetValue<string>(out var strValue))
+                    {
+                        if (FileStorageService.IsBase64DataUrl(strValue))
+                        {
+                            obj[key] = FileStorageService.SaveBase64File(strValue, moduleName);
+                        }
+                    }
+                    else
+                    {
+                        ProcessSettingJsonNode(val, moduleName);
+                    }
+                }
+            }
+            else if (node is JsonArray arr)
+            {
+                for (int i = 0; i < arr.Count; i++)
+                {
+                    var val = arr[i];
+                    if (val is JsonValue jsonVal && jsonVal.TryGetValue<string>(out var strValue))
+                    {
+                        if (FileStorageService.IsBase64DataUrl(strValue))
+                        {
+                            arr[i] = FileStorageService.SaveBase64File(strValue, moduleName);
+                        }
+                    }
+                    else
+                    {
+                        ProcessSettingJsonNode(val, moduleName);
+                    }
+                }
+            }
+
+            return node;
         }
 
         private static string GetParentCategoryFallback(string subCatSlug)

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using western_backend.Models;
+using System.Text.Json.Nodes;
+using System.Linq;
 
 namespace western_backend.Controllers
 {
@@ -48,6 +50,22 @@ namespace western_backend.Controllers
 
             string jsonString = value.GetRawText();
 
+            // Try to extract and save Base64 files embedded in settings values
+            try
+            {
+                var node = JsonNode.Parse(jsonString);
+                var moduleName = key.ToLower().Replace("bdm_settings_", "");
+                var processedNode = ProcessJsonNode(node, moduleName);
+                if (processedNode != null)
+                {
+                    jsonString = processedNode.ToJsonString();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"[SettingsController] Failed to parse/process JSON for base64: {ex.Message}");
+            }
+
             if (setting == null)
             {
                 setting = new Setting
@@ -65,6 +83,51 @@ namespace western_backend.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(ApiResponse.Success<object>(null!, $"Setting '{key}' saved successfully"));
+        }
+
+        private static JsonNode? ProcessJsonNode(JsonNode? node, string moduleName)
+        {
+            if (node == null) return null;
+
+            if (node is JsonObject obj)
+            {
+                var keys = obj.Select(k => k.Key).ToList();
+                foreach (var key in keys)
+                {
+                    var val = obj[key];
+                    if (val is JsonValue jsonVal && jsonVal.TryGetValue<string>(out var strValue))
+                    {
+                        if (FileStorageService.IsBase64DataUrl(strValue))
+                        {
+                            obj[key] = FileStorageService.SaveBase64File(strValue, moduleName);
+                        }
+                    }
+                    else
+                    {
+                        ProcessJsonNode(val, moduleName);
+                    }
+                }
+            }
+            else if (node is JsonArray arr)
+            {
+                for (int i = 0; i < arr.Count; i++)
+                {
+                    var val = arr[i];
+                    if (val is JsonValue jsonVal && jsonVal.TryGetValue<string>(out var strValue))
+                    {
+                        if (FileStorageService.IsBase64DataUrl(strValue))
+                        {
+                            arr[i] = FileStorageService.SaveBase64File(strValue, moduleName);
+                        }
+                    }
+                    else
+                    {
+                        ProcessJsonNode(val, moduleName);
+                    }
+                }
+            }
+
+            return node;
         }
     }
 }
