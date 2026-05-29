@@ -56,11 +56,44 @@ namespace western_backend
                         CreatedAt TEXT
                     );");
 
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE TABLE IF NOT EXISTS Services (
+                        Id TEXT PRIMARY KEY,
+                        Slug TEXT,
+                        Title TEXT,
+                        Description TEXT,
+                        Category TEXT,
+                        Icon TEXT,
+                        Image TEXT,
+                        Status TEXT,
+                        CreatedAt TEXT
+                    );");
+
                 try
                 {
                     context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN SubCategory TEXT;");
                 }
                 catch { /* Ignored if column already exists */ }
+            }
+            else
+            {
+                // SQL Server table migrations
+                context.Database.ExecuteSqlRaw(@"
+                    IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[Services]') AND type in (N'U'))
+                    BEGIN
+                        CREATE TABLE [Services] (
+                            [Id] nvarchar(450) NOT NULL,
+                            [Slug] nvarchar(max) NOT NULL,
+                            [Title] nvarchar(max) NOT NULL,
+                            [Description] nvarchar(max) NULL,
+                            [Category] nvarchar(max) NULL,
+                            [Icon] nvarchar(max) NULL,
+                            [Image] nvarchar(max) NOT NULL,
+                            [Status] nvarchar(max) NOT NULL,
+                            [CreatedAt] datetime2 NOT NULL,
+                            CONSTRAINT [PK_Services] PRIMARY KEY ([Id])
+                        );
+                    END");
             }
 
             // 1. Seed Admin User
@@ -488,7 +521,30 @@ namespace western_backend
                 }
             }
 
-            // 12. Run Base64 data migration to files
+            // 12. Seed Services
+            if (!context.Services.Any())
+            {
+                var services = new List<Service>
+                {
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "modular-partition", Title = "Modular Partitions", Description = "Flexible, soundproof, and reconfigurable workspace divider systems optimized for dynamic floor planning.", Category = "partitions", Icon = "Layers", Image = "https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "glass-gypsum-partition", Title = "Glass & Gypsum Partitions", Description = "Seamless double-glazed glass panels and sturdy gypsum structures that balance spatial light and acoustic isolation.", Category = "partitions", Icon = "Columns", Image = "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "solid-wall-partition", Title = "Solid Wall Partitions", Description = "Sturdy, fully sound-insulated floor-to-ceiling solid partitions designed to secure executive privacy and boardroom focus.", Category = "partitions", Icon = "Maximize", Image = "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "aluminum-partitions", Title = "Aluminum Partitions", Description = "Highly durable, sleek-profile aluminum frames customized with composite panel integrations for modern partitions.", Category = "partitions", Icon = "Paintbrush", Image = "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "wooden-flooring", Title = "Wooden Flooring", Description = "Premium engineered oak, walnut, and teak floor layouts tailored to elevate leadership suites and high-end boardrooms.", Category = "flooring", Icon = "Trees", Image = "https://images.unsplash.com/photo-1581850518616-bcb8186c3f30?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "vinyl-flooring", Title = "Vinyl Flooring", Description = "Heavy-duty resilient sheets and interlocking plank systems engineered to withstand heavy, high-traffic commercial environments.", Category = "flooring", Icon = "Shield", Image = "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "vitrified-tiles", Title = "Vitrified Tiles", Description = "Luxury double-charged vitrified tile grids styled for impressive high-gloss reception lobbies and corporate cafeterias.", Category = "flooring", Icon = "LayoutGrid", Image = "https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "false-flooring", Title = "False Flooring", Description = "Raised modular access floor paneling designed to route hidden electrical, server cooling, and telecom networking grids.", Category = "flooring", Icon = "Grid", Image = "https://images.unsplash.com/photo-1595844730298-b960ff98fee0?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "false-ceiling-design", Title = "False Ceiling Design", Description = "Aesthetic suspended ceiling rafters, ambient grid ceilings, and drop light designs integrating smart office utilities.", Category = "ceiling", Icon = "Cloud", Image = "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "ac-ducting", Title = "AC & Ducting", Description = "Precision-designed central HVAC ventilation, VRV systems, and custom duct installations for optimal indoor airflow.", Category = "ceiling", Icon = "Wind", Image = "https://images.unsplash.com/photo-1581094288338-2314dddb7ec4?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "electrical-networking", Title = "Electrical & Networking", Description = "Certified commercial power cabling, safety distribution boards, and structured server room networking installations.", Category = "infrastructure", Icon = "Zap", Image = "https://images.unsplash.com/photo-1517502884422-41eaead166d4?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "office-interiors", Title = "Office Interiors", Description = "End-to-end turnkey office layout execution, spatial fitouts, and strategic employee desks architecture.", Category = "infrastructure", Icon = "Layout", Image = "https://images.unsplash.com/photo-1497366454035-f200968a6e72?q=80&w=2070&auto=format&fit=crop", Status = "Active" },
+                    new Service { Id = Guid.NewGuid().ToString(), Slug = "interiors-decoration", Title = "Interiors & Decoration", Description = "Tailored brand styling elements, custom wall graphic claddings, ergonomic accents, and premium office artifacts.", Category = "infrastructure", Icon = "Sparkles", Image = "https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?q=80&w=2070&auto=format&fit=crop", Status = "Active" }
+                };
+                context.Services.AddRange(services);
+                context.SaveChanges();
+            }
+
+            // 13. Run Base64 data migration to files
             try
             {
                 MigrateBase64ToFiles(context);
@@ -702,7 +758,25 @@ namespace western_backend
                 }
             }
 
-            // 8. Settings
+            // 8. Services
+            var dbServices = context.Services.ToList();
+            foreach (var service in dbServices)
+            {
+                if (FileStorageService.IsBase64DataUrl(service.Image))
+                {
+                    try
+                    {
+                        service.Image = FileStorageService.SaveBase64File(service.Image, "service");
+                        Console.WriteLine($"[Migration] Migrated image for service: {service.Title}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Migration] Failed to migrate image for service {service.Title}: {ex.Message}");
+                    }
+                }
+            }
+
+            // 9. Settings
             var settings = context.Settings.ToList();
             foreach (var setting in settings)
             {

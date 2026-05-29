@@ -186,4 +186,17 @@ namespace western_backend.Models
         public string Desc { get; set; } = string.Empty;
         public bool Border { get; set; }
     }
+
+    public class Service
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Slug { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? Category { get; set; }
+        public string? Icon { get; set; }
+        public string Image { get; set; } = string.Empty;
+        public string Status { get; set; } = "Active";
+        public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
+    }
 }

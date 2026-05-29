@@ -23,6 +23,7 @@ namespace western_backend
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Testimonial> Testimonials => Set<Testimonial>();
         public DbSet<Catalogue> Catalogues => Set<Catalogue>();
+        public DbSet<Service> Services => Set<Service>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
