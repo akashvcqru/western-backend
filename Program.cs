@@ -29,18 +29,60 @@ if (args.Contains("--generate-schema"))
 }
 
 
+// Check connection and fallback to SQLite if SQL Server is configured but unreachable
+var activeConnectionString = connectionString;
+bool isSqlite = activeConnectionString.Contains(".db") || activeConnectionString.Contains("filename=", StringComparison.OrdinalIgnoreCase);
+
+if (!isSqlite)
+{
+    try
+    {
+        var connBuilder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(activeConnectionString);
+        var dataSource = connBuilder.DataSource;
+        string host = "localhost";
+        int port = 1433;
+        
+        if (dataSource.Contains(","))
+        {
+            var parts = dataSource.Split(',');
+            host = parts[0].Trim();
+            int.TryParse(parts[1].Trim(), out port);
+        }
+        else
+        {
+            host = dataSource.Trim();
+        }
+        
+        using var client = new System.Net.Sockets.TcpClient();
+        var result = client.BeginConnect(host, port, null, null);
+        var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(2));
+        if (!success)
+        {
+            throw new TimeoutException("Connection timed out");
+        }
+        client.EndConnect(result);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Database Setup] SQL Server database at '{activeConnectionString}' is unreachable: {ex.Message}");
+        Console.WriteLine("[Database Setup] Falling back to local SQLite database 'western.db' for development.");
+        activeConnectionString = "Data Source=western.db";
+        isSqlite = true;
+    }
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    if (connectionString.Contains(".db") || connectionString.Contains("filename=", StringComparison.OrdinalIgnoreCase))
+    if (isSqlite)
     {
-        options.UseSqlite(connectionString, sqliteOptions =>
+        options.UseSqlite(activeConnectionString, sqliteOptions =>
         {
             sqliteOptions.CommandTimeout(30);
         });
     }
     else
     {
-        options.UseSqlServer(connectionString);
+        options.UseSqlServer(activeConnectionString);
     }
 });
 

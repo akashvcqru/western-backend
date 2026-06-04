@@ -18,6 +18,7 @@ namespace western_backend.Models
         public int Count { get; set; }
         public string Image { get; set; } = string.Empty;
         public string Status { get; set; } = "Active";
+        public string? Location { get; set; } = "Header";
     }
 
     public class SubCategory

@@ -21,6 +21,7 @@ namespace western_backend.Controllers
             public string Description { get; set; } = string.Empty;
             public string Image { get; set; } = string.Empty;
             public string Status { get; set; } = "Active";
+            public string? Location { get; set; } = "Header";
         }
 
         public CategoriesController(AppDbContext context)
@@ -101,9 +102,9 @@ namespace western_backend.Controllers
                 return BadRequest(ApiResponse.Error("Invalid category payload"));
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 10)
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 25)
             {
-                return BadRequest(ApiResponse.Error("Category Name cannot exceed 10 characters"));
+                return BadRequest(ApiResponse.Error("Category Name cannot exceed 25 characters"));
             }
 
             string slug = GenerateSlug(request.Name);
@@ -122,6 +123,7 @@ namespace western_backend.Controllers
                 Description = request.Description,
                 Image = FileStorageService.SaveBase64File(request.Image, "category"),
                 Status = request.Status,
+                Location = request.Location,
                 Count = 0
             };
 
@@ -142,15 +144,16 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"Category '{id}' not found"));
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 10)
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 25)
             {
-                return BadRequest(ApiResponse.Error("Category Name cannot exceed 10 characters"));
+                return BadRequest(ApiResponse.Error("Category Name cannot exceed 25 characters"));
             }
 
             category.Name = request.Name;
             category.Description = request.Description;
             category.Image = FileStorageService.SaveBase64File(request.Image, "category", category.Image);
             category.Status = request.Status;
+            category.Location = request.Location;
 
             await _context.SaveChangesAsync();
 

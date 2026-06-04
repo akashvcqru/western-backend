@@ -74,6 +74,12 @@ namespace western_backend
                     context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN SubCategory TEXT;");
                 }
                 catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD COLUMN Location TEXT;");
+                }
+                catch { /* Ignored if column already exists */ }
             }
             else
             {
@@ -94,6 +100,12 @@ namespace western_backend
                             CONSTRAINT [PK_Services] PRIMARY KEY ([Id])
                         );
                     END");
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD Location nvarchar(max) NULL;");
+                }
+                catch { /* Ignored if column already exists */ }
             }
 
             // 1. Seed Admin User
@@ -208,7 +220,8 @@ namespace western_backend
                             Name = "Office Furniture",
                             Description = "Elevate your work environment with our ergonomic desking systems, executive series tables, and collaborative storage units.",
                             Image = "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2070&auto=format&fit=crop",
-                            Status = "Active"
+                            Status = "Active",
+                            Location = "Header"
                         },
                         new Category
                         {
@@ -217,7 +230,8 @@ namespace western_backend
                             Name = "Home Furniture",
                             Description = "Craft a sanctuary of style and comfort. Handcrafted tables, modular kitchens, and elegant storage layouts for modern living.",
                             Image = "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=2070&auto=format&fit=crop",
-                            Status = "Active"
+                            Status = "Active",
+                            Location = "Header"
                         },
                         new Category
                         {
@@ -226,7 +240,8 @@ namespace western_backend
                             Name = "Chairs",
                             Description = "Engineered for absolute posture support and long-term seating comfort. Explore our CEO, executive, and staff collections.",
                             Image = "https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?q=80&w=2070&auto=format&fit=crop",
-                            Status = "Active"
+                            Status = "Active",
+                            Location = "Header"
                         },
                         new Category
                         {
@@ -235,7 +250,8 @@ namespace western_backend
                             Name = "Interior Design",
                             Description = "Transform your corporate space. Complete turnkey workspace layouts, partitions, false ceilings, and flooring design solutions.",
                             Image = "https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=2071&auto=format&fit=crop",
-                            Status = "Active"
+                            Status = "Active",
+                            Location = "Header"
                         }
                     };
                     context.Categories.AddRange(rootCategories);
@@ -245,6 +261,25 @@ namespace western_backend
                 {
                     Console.WriteLine($"Error seeding categories: {ex.Message}");
                 }
+            }
+
+            // Backfill null/empty Location values to "Header" for existing categories
+            try
+            {
+                var nullLocationCats = context.Categories.Where(c => c.Location == null || c.Location == "").ToList();
+                if (nullLocationCats.Any())
+                {
+                    foreach (var cat in nullLocationCats)
+                    {
+                        cat.Location = "Header";
+                    }
+                    context.SaveChanges();
+                    Console.WriteLine($"[Seeding] Backfilled {nullLocationCats.Count} categories with 'Header' location.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Seeding] Error backfilling categories: {ex.Message}");
             }
 
             // 3b. Seed SubCategories
