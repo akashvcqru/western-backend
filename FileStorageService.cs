@@ -8,6 +8,7 @@ namespace western_backend
     {
         private static readonly string UploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
         private const long MaxFileSizeBytes = 10 * 1024 * 1024; // 10 MB limit
+        public static bool EnforceLimits { get; set; } = true;
 
         public static bool IsBase64DataUrl(string value)
         {
@@ -46,9 +47,23 @@ namespace western_backend
                 byte[] fileBytes = Convert.FromBase64String(base64Data);
 
                 // Validate file size
-                if (fileBytes.Length > MaxFileSizeBytes)
+                long limit = MaxFileSizeBytes;
+                bool isImage = mimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+                if (EnforceLimits && isImage)
                 {
-                    throw new InvalidDataException($"File size exceeds the limit of {MaxFileSizeBytes / (1024 * 1024)} MB.");
+                    limit = 100 * 1024; // 100 KB limit for images
+                }
+
+                if (fileBytes.Length > limit)
+                {
+                    if (EnforceLimits && isImage)
+                    {
+                        throw new InvalidDataException("Image size exceeds the limit of 100 KB.");
+                    }
+                    else
+                    {
+                        throw new InvalidDataException($"File size exceeds the limit of {MaxFileSizeBytes / (1024 * 1024)} MB.");
+                    }
                 }
 
                 // Create module folder if it doesn't exist

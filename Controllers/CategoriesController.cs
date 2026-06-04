@@ -101,6 +101,11 @@ namespace western_backend.Controllers
                 return BadRequest(ApiResponse.Error("Invalid category payload"));
             }
 
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 10)
+            {
+                return BadRequest(ApiResponse.Error("Category Name cannot exceed 10 characters"));
+            }
+
             string slug = GenerateSlug(request.Name);
             string uniqueId = slug;
             int counter = 1;
@@ -135,6 +140,11 @@ namespace western_backend.Controllers
             if (category == null)
             {
                 return NotFound(ApiResponse.Error($"Category '{id}' not found"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 10)
+            {
+                return BadRequest(ApiResponse.Error("Category Name cannot exceed 10 characters"));
             }
 
             category.Name = request.Name;
@@ -225,6 +235,11 @@ namespace western_backend.Controllers
                 return BadRequest(ApiResponse.Error("Invalid subcategory payload"));
             }
 
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 12)
+            {
+                return BadRequest(ApiResponse.Error("SubCategory Name cannot exceed 12 characters"));
+            }
+
             string slug = GenerateSlug(request.Name);
             string uniqueId = slug;
             int counter = 1;
@@ -259,6 +274,11 @@ namespace western_backend.Controllers
             if (subCategory == null)
             {
                 return NotFound(ApiResponse.Error($"SubCategory '{id}' not found"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 12)
+            {
+                return BadRequest(ApiResponse.Error("SubCategory Name cannot exceed 12 characters"));
             }
 
             subCategory.Name = request.Name;

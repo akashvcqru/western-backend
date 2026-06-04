@@ -558,6 +558,9 @@ namespace western_backend
         public static void MigrateBase64ToFiles(AppDbContext context)
         {
             Console.WriteLine("[Migration] Starting migration of base64 data to physical files...");
+            FileStorageService.EnforceLimits = false;
+            try
+            {
             
             // 1. Categories
             var categories = context.Categories.ToList();
@@ -803,6 +806,11 @@ namespace western_backend
 
             context.SaveChanges();
             Console.WriteLine("[Migration] Base64 migration completed successfully.");
+            }
+            finally
+            {
+                FileStorageService.EnforceLimits = true;
+            }
         }
 
         private static JsonNode? ProcessSettingJsonNode(JsonNode? node, string moduleName)
