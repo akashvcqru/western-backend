@@ -49,16 +49,30 @@ namespace western_backend
                 // Validate file size
                 long limit = MaxFileSizeBytes;
                 bool isImage = mimeType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
-                if (EnforceLimits && isImage)
+                if (EnforceLimits)
                 {
-                    limit = 100 * 1024; // 100 KB limit for images
+                    if (isImage)
+                    {
+                        limit = 100 * 1024; // 100 KB limit for images
+                    }
+                    else
+                    {
+                        limit = 10 * 1024; // 10 KB limit for documents/files
+                    }
                 }
 
                 if (fileBytes.Length > limit)
                 {
-                    if (EnforceLimits && isImage)
+                    if (EnforceLimits)
                     {
-                        throw new InvalidDataException("Image size exceeds the limit of 100 KB.");
+                        if (isImage)
+                        {
+                            throw new InvalidDataException("Image size exceeds the limit of 100 KB.");
+                        }
+                        else
+                        {
+                            throw new InvalidDataException("Document size exceeds the limit of 10 KB.");
+                        }
                     }
                     else
                     {
