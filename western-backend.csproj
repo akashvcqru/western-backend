@@ -15,4 +15,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Exclude uploads folder from publish output -->
+    <Content Remove="uploads\**" />
+    <None Remove="uploads\**" />
+  </ItemGroup>
+
 </Project>
