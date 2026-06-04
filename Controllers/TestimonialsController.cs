@@ -184,19 +184,19 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"Testimonial with ID '{id}' not found"));
             }
 
-            // Only update fields that were explicitly provided (non-empty)
+            // Differentiate between full update (from edit form) and partial status toggle
             if (!string.IsNullOrEmpty(request.Author))
+            {
                 testimonial.Author = request.Author;
-            if (!string.IsNullOrEmpty(request.Designation))
-                testimonial.Designation = request.Designation;
-            if (!string.IsNullOrEmpty(request.Company))
-                testimonial.Company = request.Company;
-            if (!string.IsNullOrEmpty(request.Quote))
+                testimonial.Designation = request.Designation ?? string.Empty;
+                testimonial.Company = request.Company ?? string.Empty;
                 testimonial.Quote = request.Quote;
-            if (request.Rating > 0)
-                testimonial.Rating = request.Rating;
-            if (!string.IsNullOrEmpty(request.Category))
-                testimonial.Category = request.Category;
+                if (request.Rating > 0)
+                    testimonial.Rating = request.Rating;
+                if (!string.IsNullOrEmpty(request.Category))
+                    testimonial.Category = request.Category;
+            }
+
             if (!string.IsNullOrEmpty(request.Status))
                 testimonial.Status = request.Status;
 

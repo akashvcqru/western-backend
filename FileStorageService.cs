@@ -57,7 +57,7 @@ namespace western_backend
                     }
                     else
                     {
-                        limit = 10 * 1024; // 10 KB limit for documents/files
+                        limit = 1024 * 1024; // 1 MB limit for documents/files
                     }
                 }
 
@@ -71,7 +71,7 @@ namespace western_backend
                         }
                         else
                         {
-                            throw new InvalidDataException("Document size exceeds the limit of 10 KB.");
+                            throw new InvalidDataException("Document size exceeds the limit of 1 MB.");
                         }
                     }
                     else
