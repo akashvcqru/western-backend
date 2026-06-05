@@ -17,7 +17,7 @@ namespace western_backend.Models
         public string Description { get; set; } = string.Empty;
         public int Count { get; set; }
         public string Image { get; set; } = string.Empty;
-        public string Status { get; set; } = "Active";
+        public string? Status { get; set; } = "Active";
         public string? Location { get; set; } = "Header";
     }
 
@@ -29,7 +29,7 @@ namespace western_backend.Models
         public string Description { get; set; } = string.Empty;
         public string Image { get; set; } = string.Empty;
         public string CategoryId { get; set; } = string.Empty;
-        public string Status { get; set; } = "Active";
+        public string? Status { get; set; } = "Active";
     }
 
     public class Brand
@@ -74,7 +74,7 @@ namespace western_backend.Models
         public string Subject { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public string Date { get; set; } = string.Empty;
-        public string Status { get; set; } = "new";
+        public string? Status { get; set; } = "new";
     }
 
     public class Setting
@@ -92,9 +92,9 @@ namespace western_backend.Models
         public string Quote { get; set; } = string.Empty;
         public int Rating { get; set; } = 5;
         public string Category { get; set; } = string.Empty;
-        public string Status { get; set; } = "Active";
+        public string? Status { get; set; } = "Active";
         public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
-        public string Image { get; set; } = string.Empty;
+        public string? Image { get; set; }
     }
 
     public class Catalogue
@@ -106,7 +106,7 @@ namespace western_backend.Models
         public string Image { get; set; } = string.Empty;
         public string PdfData { get; set; } = string.Empty;
         public string PdfFileName { get; set; } = string.Empty;
-        public string Status { get; set; } = "Active";
+        public string? Status { get; set; } = "Active";
         public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
     }
 
@@ -119,7 +119,7 @@ namespace western_backend.Models
         public string? SubCategory { get; set; }
         public string Brand { get; set; } = string.Empty;
         public string Price { get; set; } = string.Empty;
-        public string Status { get; set; } = "Active";
+        public string? Status { get; set; } = "Active";
         public int Stock { get; set; }
         public string Description { get; set; } = string.Empty;
         public List<string> Images { get; set; } = new();
@@ -200,7 +200,7 @@ namespace western_backend.Models
         public string? Category { get; set; }
         public string? Icon { get; set; }
         public string Image { get; set; } = string.Empty;
-        public string Status { get; set; } = "Active";
+        public string? Status { get; set; } = "Active";
         public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
     }
 }
