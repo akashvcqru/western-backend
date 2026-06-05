@@ -63,16 +63,23 @@ namespace western_backend.Controllers
             Console.WriteLine($"[Perf] Categories ToListAsync took {sw.ElapsedMilliseconds} ms");
 
             sw.Restart();
-            // Calculate product counts dynamically using database count queries
+            var categoryIds = categories.Select(c => c.Id).ToList();
+            var categorySlugs = categories.Select(c => c.Slug ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList();
+
+            // Fetch counts in a single query grouped by category (case-insensitive key comparison)
+            var productCounts = await _context.Products
+                .Where(p => categoryIds.Contains(p.Category) || categorySlugs.Contains(p.Category))
+                .GroupBy(p => p.Category)
+                .Select(g => new { Category = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Category, x => x.Count, StringComparer.OrdinalIgnoreCase);
+
             foreach (var cat in categories)
             {
-                var catId = cat.Id.ToLower();
-                var catSlug = (cat.Slug ?? "").ToLower();
-                cat.Count = await _context.Products.CountAsync(p =>
-                    p.Category.ToLower() == catId ||
-                    p.Category.ToLower() == catSlug);
+                var countFromId = productCounts.GetValueOrDefault(cat.Id, 0);
+                var countFromSlug = string.IsNullOrEmpty(cat.Slug) ? 0 : productCounts.GetValueOrDefault(cat.Slug, 0);
+                cat.Count = Math.Max(countFromId, countFromSlug);
             }
-            Console.WriteLine($"[Perf] Product Count loops took {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"[Perf] Product Count single query took {sw.ElapsedMilliseconds} ms");
 
             return Ok(ApiResponse.Paginated(categories, page, totalItems, limit));
         }
@@ -86,9 +93,10 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"Category '{id}' not found"));
             }
 
+            // Optimize count query to avoid case translation on the DB column
             category.Count = await _context.Products.CountAsync(p =>
-                p.Category.ToLower() == category.Id.ToLower() ||
-                p.Category.ToLower() == (category.Slug ?? "").ToLower());
+                p.Category == category.Id ||
+                p.Category == category.Slug);
 
             return Ok(ApiResponse.Success(category));
         }

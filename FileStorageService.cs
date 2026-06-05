@@ -7,7 +7,7 @@ namespace western_backend
     public static class FileStorageService
     {
         private static readonly string UploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-        private const long MaxFileSizeBytes = 10 * 1024 * 1024; // 10 MB limit
+        private const long MaxFileSizeBytes = 100 * 1024 * 1024; // 100 MB limit
         public static bool EnforceLimits { get; set; } = true;
 
         public static bool IsBase64DataUrl(string value)

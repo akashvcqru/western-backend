@@ -168,6 +168,19 @@ using (var scope = app.Services.CreateScope())
         }
         
         Console.WriteLine($"[Seeding] Seeding SQLite database from source path: {dataPath}");
+        try
+        {
+            Console.WriteLine("[Diagnostic] Querying Settings keys and lengths...");
+            var settingsKeys = db.Settings.Select(s => new { s.Key, Length = s.Value != null ? s.Value.Length : 0 }).ToList();
+            foreach (var sk in settingsKeys)
+            {
+                Console.WriteLine($"[Diagnostic] Key: {sk.Key}, Length: {sk.Length}");
+            }
+        }
+        catch (Exception diagEx)
+        {
+            Console.WriteLine($"[Diagnostic] Error querying settings keys: {diagEx.Message}");
+        }
         DbInitializer.Initialize(db, dataPath);
         Console.WriteLine("[Seeding] Database initialization & seeding completed successfully.");
     }

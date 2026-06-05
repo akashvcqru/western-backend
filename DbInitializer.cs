@@ -14,6 +14,7 @@ namespace western_backend
     {
         public static void Initialize(AppDbContext context, string dataPath)
         {
+            context.Database.SetCommandTimeout(300);
             context.Database.EnsureCreated();
 
             // Run raw SQL migrations for SubCategories table & columns (SQLite only)
@@ -631,6 +632,7 @@ namespace western_backend
         public static void MigrateBase64ToFiles(AppDbContext context)
         {
             Console.WriteLine("[Migration] Starting migration of base64 data to physical files...");
+            context.Database.SetCommandTimeout(300);
             FileStorageService.EnforceLimits = false;
             try
             {
