@@ -40,7 +40,8 @@ namespace western_backend
                         Rating INTEGER,
                         Category TEXT,
                         Status TEXT,
-                        CreatedAt TEXT
+                        CreatedAt TEXT,
+                        Image TEXT
                     );");
 
                 context.Database.ExecuteSqlRaw(@"
@@ -80,6 +81,24 @@ namespace western_backend
                     context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD COLUMN Location TEXT;");
                 }
                 catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Testimonials ADD COLUMN Image TEXT;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Blogs ADD COLUMN LinkText TEXT;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Blogs ADD COLUMN Hyperlink TEXT;");
+                }
+                catch { /* Ignored if column already exists */ }
             }
             else
             {
@@ -104,6 +123,24 @@ namespace western_backend
                 try
                 {
                     context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD Location nvarchar(max) NULL;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Testimonials ADD Image nvarchar(max) NULL;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Blogs ADD LinkText nvarchar(max) NULL;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Blogs ADD Hyperlink nvarchar(max) NULL;");
                 }
                 catch { /* Ignored if column already exists */ }
             }
@@ -503,7 +540,8 @@ namespace western_backend
                                         Rating = item.TryGetProperty("rating", out var r) ? r.GetInt32() : 5,
                                         Category = item.TryGetProperty("category", out var c) ? (c.GetString() ?? "") : "",
                                         Status = "Active",
-                                        CreatedAt = DateTime.UtcNow
+                                        CreatedAt = DateTime.UtcNow,
+                                        Image = ""
                                     });
                                 }
                                 context.Testimonials.AddRange(testimonials);

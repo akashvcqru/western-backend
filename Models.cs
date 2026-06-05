@@ -61,6 +61,8 @@ namespace western_backend.Models
         public string AuthorRole { get; set; } = "Western Interio Admin";
         public List<string> Tags { get; set; } = new();
         public List<string> Content { get; set; } = new();
+        public string? LinkText { get; set; } = string.Empty;
+        public string? Hyperlink { get; set; } = string.Empty;
     }
 
     public class Inquiry
@@ -92,6 +94,7 @@ namespace western_backend.Models
         public string Category { get; set; } = string.Empty;
         public string Status { get; set; } = "Active";
         public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
+        public string Image { get; set; } = string.Empty;
     }
 
     public class Catalogue

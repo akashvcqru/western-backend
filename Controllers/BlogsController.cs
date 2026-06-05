@@ -27,6 +27,8 @@ namespace western_backend.Controllers
             public List<string> Content { get; set; } = new();
             public string? Date { get; set; }
             public string? ReadTime { get; set; }
+            public string? LinkText { get; set; }
+            public string? Hyperlink { get; set; }
         }
 
         public BlogsController(AppDbContext context)
@@ -126,7 +128,9 @@ namespace western_backend.Controllers
                 Tags = request.Tags,
                 Content = request.Content,
                 Date = request.Date ?? todayStr,
-                ReadTime = readTime
+                ReadTime = readTime,
+                LinkText = request.LinkText,
+                Hyperlink = request.Hyperlink
             };
 
             _context.Blogs.Add(blog);
@@ -164,6 +168,8 @@ namespace western_backend.Controllers
             blog.Content = request.Content;
             if (!string.IsNullOrEmpty(request.Date)) blog.Date = request.Date;
             blog.ReadTime = readTime;
+            blog.LinkText = request.LinkText;
+            blog.Hyperlink = request.Hyperlink;
 
             _context.Blogs.Update(blog);
             await _context.SaveChangesAsync();

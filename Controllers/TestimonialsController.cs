@@ -23,6 +23,7 @@ namespace western_backend.Controllers
             public string Quote { get; set; } = string.Empty;
             public int Rating { get; set; } = 5;
             public string Category { get; set; } = string.Empty;
+            public string Image { get; set; } = string.Empty;
         }
 
         public class TestimonialUpdateRequest
@@ -34,6 +35,7 @@ namespace western_backend.Controllers
             public int Rating { get; set; } = 5;
             public string Category { get; set; } = string.Empty;
             public string Status { get; set; } = "Active";
+            public string Image { get; set; } = string.Empty;
         }
 
         public TestimonialsController(AppDbContext context)
@@ -135,7 +137,8 @@ namespace western_backend.Controllers
                 Rating = request.Rating,
                 Category = request.Category,
                 Status = "Pending", // Sent to admin panel for review
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Image = string.IsNullOrEmpty(request.Image) ? string.Empty : FileStorageService.SaveBase64File(request.Image, "testimonial")
             };
 
             _context.Testimonials.Add(testimonial);
@@ -164,7 +167,8 @@ namespace western_backend.Controllers
                 Rating = request.Rating,
                 Category = request.Category,
                 Status = string.IsNullOrWhiteSpace(request.Status) ? "Active" : request.Status,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Image = string.IsNullOrEmpty(request.Image) ? string.Empty : FileStorageService.SaveBase64File(request.Image, "testimonial")
             };
 
             _context.Testimonials.Add(testimonial);
@@ -195,6 +199,20 @@ namespace western_backend.Controllers
                     testimonial.Rating = request.Rating;
                 if (!string.IsNullOrEmpty(request.Category))
                     testimonial.Category = request.Category;
+
+                // Handle image update/delete
+                if (request.Image != testimonial.Image)
+                {
+                    if (string.IsNullOrEmpty(request.Image))
+                    {
+                        FileStorageService.DeleteFile(testimonial.Image);
+                        testimonial.Image = string.Empty;
+                    }
+                    else
+                    {
+                        testimonial.Image = FileStorageService.SaveBase64File(request.Image, "testimonial", testimonial.Image);
+                    }
+                }
             }
 
             if (!string.IsNullOrEmpty(request.Status))
@@ -215,6 +233,12 @@ namespace western_backend.Controllers
             if (testimonial == null)
             {
                 return NotFound(ApiResponse.Error($"Testimonial with ID '{id}' not found"));
+            }
+
+            // Delete associated physical image if exists
+            if (!string.IsNullOrEmpty(testimonial.Image))
+            {
+                FileStorageService.DeleteFile(testimonial.Image);
             }
 
             _context.Testimonials.Remove(testimonial);
