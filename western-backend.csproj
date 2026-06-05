@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>false</InvariantGlobalization>
     <RootNamespace>western_backend</RootNamespace>
+    <RollForward>LatestMajor</RollForward>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,9 +17,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Exclude uploads folder from publish output -->
+    <!-- Exclude uploads, database, and publish folders from project and publish output -->
     <Content Remove="uploads\**" />
     <None Remove="uploads\**" />
+    <Content Remove="publish\**" />
+    <None Remove="publish\**" />
+    <Content Remove="*.db;*.db-shm;*.db-wal" />
+    <None Remove="*.db;*.db-shm;*.db-wal" />
   </ItemGroup>
+
+  <Target Name="DeleteUploadsFolder" AfterTargets="Publish">
+    <RemoveDir Directories="$(PublishDir)uploads" />
+  </Target>
 
 </Project>
