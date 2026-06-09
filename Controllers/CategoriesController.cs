@@ -246,9 +246,9 @@ namespace western_backend.Controllers
                 return BadRequest(ApiResponse.Error("Invalid subcategory payload"));
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 12)
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 25)
             {
-                return BadRequest(ApiResponse.Error("SubCategory Name cannot exceed 12 characters"));
+                return BadRequest(ApiResponse.Error("SubCategory Name cannot exceed 25 characters"));
             }
 
             string slug = GenerateSlug(request.Name);
@@ -287,9 +287,9 @@ namespace western_backend.Controllers
                 return NotFound(ApiResponse.Error($"SubCategory '{id}' not found"));
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 12)
+            if (!string.IsNullOrWhiteSpace(request.Name) && request.Name.Length > 25)
             {
-                return BadRequest(ApiResponse.Error("SubCategory Name cannot exceed 12 characters"));
+                return BadRequest(ApiResponse.Error("SubCategory Name cannot exceed 25 characters"));
             }
 
             subCategory.Name = request.Name;
