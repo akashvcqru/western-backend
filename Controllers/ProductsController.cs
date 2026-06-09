@@ -31,7 +31,7 @@ namespace western_backend.Controllers
         {
             if (page < 1) page = 1;
             if (limit < 1) limit = 10;
-            if (limit > 100) limit = 100;
+            if (limit > 1000) limit = 1000;
 
             var query = _context.Products.AsQueryable();
 
