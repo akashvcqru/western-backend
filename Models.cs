@@ -141,6 +141,14 @@ namespace western_backend.Models
         public string? DetailsText1 { get; set; }
         public string? DetailsText2 { get; set; }
         public List<string> QuickSpecs { get; set; } = new();
+        public List<TrustBadgeItem> TrustBadges { get; set; } = new();
+    }
+
+    public class TrustBadgeItem
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Desc { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
     }
 
     public class FeatureItem

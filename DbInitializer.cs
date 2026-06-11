@@ -79,6 +79,12 @@ namespace western_backend
 
                 try
                 {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN TrustBadges TEXT;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
                     context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD COLUMN Location TEXT;");
                 }
                 catch { /* Ignored if column already exists */ }
@@ -136,6 +142,12 @@ namespace western_backend
                 try
                 {
                     context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD Location nvarchar(max) NULL;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD TrustBadges nvarchar(max) NULL;");
                 }
                 catch { /* Ignored if column already exists */ }
 

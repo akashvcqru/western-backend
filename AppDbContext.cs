@@ -85,6 +85,12 @@ namespace western_backend
                 c => c.Select(item => new SwatchItem { Category = item.Category, Options = item.Options.Select(o => new SwatchOption { Name = o.Name, Hex = o.Hex, Desc = o.Desc, Border = o.Border }).ToList() }).ToList()
             );
 
+            var trustBadgeListComparer = new ValueComparer<List<TrustBadgeItem>>(
+                (c1, c2) => c1 == c2 || (c1 != null && c2 != null && c1.Count == c2.Count && c1.Zip(c2, (x, y) => x.Title == y.Title && x.Desc == y.Desc && x.Icon == y.Icon).All(b => b)),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, HashCode.Combine(v.Title, v.Desc, v.Icon))),
+                c => c.Select(item => new TrustBadgeItem { Title = item.Title, Desc = item.Desc, Icon = item.Icon }).ToList()
+            );
+
             // Configure BlogPost JSON columns
             modelBuilder.Entity<BlogPost>(entity =>
             {
@@ -155,6 +161,12 @@ namespace western_backend
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
                     .Metadata.SetValueComparer(stringListComparer);
+
+                entity.Property(e => e.TrustBadges)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<List<TrustBadgeItem>>(v, (JsonSerializerOptions?)null) ?? new List<TrustBadgeItem>())
+                    .Metadata.SetValueComparer(trustBadgeListComparer);
             });
         }
     }

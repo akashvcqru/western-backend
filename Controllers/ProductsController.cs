@@ -133,6 +133,18 @@ namespace western_backend.Controllers
                 }
             }
 
+            // Process trust badge icons
+            if (product.TrustBadges != null && product.TrustBadges.Count > 0)
+            {
+                foreach (var badge in product.TrustBadges)
+                {
+                    if (!string.IsNullOrEmpty(badge.Icon))
+                    {
+                        badge.Icon = FileStorageService.SaveBase64File(badge.Icon, "product/trustbadges");
+                    }
+                }
+            }
+
             product.Id = uniqueId;
             product.Slug = uniqueId;
 
@@ -214,6 +226,25 @@ namespace western_backend.Controllers
             }
             product.Resources = newResources;
 
+            // Process trust badge icons
+            var oldTrustBadges = product.TrustBadges ?? new List<TrustBadgeItem>();
+            var newTrustBadges = updatedProduct.TrustBadges ?? new List<TrustBadgeItem>();
+            foreach (var oldBadge in oldTrustBadges)
+            {
+                if (!string.IsNullOrEmpty(oldBadge.Icon) && !newTrustBadges.Any(r => r.Icon == oldBadge.Icon))
+                {
+                    FileStorageService.DeleteFile(oldBadge.Icon);
+                }
+            }
+            foreach (var newBadge in newTrustBadges)
+            {
+                if (!string.IsNullOrEmpty(newBadge.Icon))
+                {
+                    newBadge.Icon = FileStorageService.SaveBase64File(newBadge.Icon, "product/trustbadges");
+                }
+            }
+            product.TrustBadges = newTrustBadges;
+
             if (!string.IsNullOrEmpty(updatedProduct.Slug))
                 product.Slug = updatedProduct.Slug;
 
@@ -247,6 +278,13 @@ namespace western_backend.Controllers
                 foreach (var res in product.Resources)
                 {
                     FileStorageService.DeleteFile(res.FileData);
+                }
+            }
+            if (product.TrustBadges != null)
+            {
+                foreach (var badge in product.TrustBadges)
+                {
+                    FileStorageService.DeleteFile(badge.Icon);
                 }
             }
 
