@@ -186,6 +186,8 @@ namespace western_backend.Controllers
             product.DetailsText1 = updatedProduct.DetailsText1;
             product.DetailsText2 = updatedProduct.DetailsText2;
             product.QuickSpecs = updatedProduct.QuickSpecs;
+            product.MetaTitle = updatedProduct.MetaTitle;
+            product.MetaDescription = updatedProduct.MetaDescription;
 
             // Process files and clean up old ones
             product.Image = FileStorageService.SaveBase64File(updatedProduct.Image ?? "", "product", product.Image);

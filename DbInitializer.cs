@@ -118,6 +118,13 @@ namespace western_backend
                     context.Database.ExecuteSqlRaw("ALTER TABLE SubCategories ADD COLUMN Position INTEGER DEFAULT 0;");
                 }
                 catch { /* Ignored if column already exists */ }
+
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD COLUMN MetaTitle TEXT;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD COLUMN MetaDescription TEXT;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE SubCategories ADD COLUMN MetaTitle TEXT;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE SubCategories ADD COLUMN MetaDescription TEXT;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN MetaTitle TEXT;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN MetaDescription TEXT;"); } catch { }
             }
             else
             {
@@ -180,6 +187,13 @@ namespace western_backend
                     context.Database.ExecuteSqlRaw("ALTER TABLE SubCategories ADD Position int NOT NULL DEFAULT 0;");
                 }
                 catch { /* Ignored if column already exists */ }
+
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD MetaTitle nvarchar(max) NULL;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD MetaDescription nvarchar(max) NULL;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE SubCategories ADD MetaTitle nvarchar(max) NULL;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE SubCategories ADD MetaDescription nvarchar(max) NULL;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD MetaTitle nvarchar(max) NULL;"); } catch { }
+                try { context.Database.ExecuteSqlRaw("ALTER TABLE Products ADD MetaDescription nvarchar(max) NULL;"); } catch { }
             }
 
             // 1. Seed Admin User

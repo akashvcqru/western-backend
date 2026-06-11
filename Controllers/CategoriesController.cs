@@ -22,6 +22,8 @@ namespace western_backend.Controllers
             public string Image { get; set; } = string.Empty;
             public string Status { get; set; } = "Active";
             public string? Location { get; set; } = "Header";
+            public string? MetaTitle { get; set; }
+            public string? MetaDescription { get; set; }
         }
 
         public CategoriesController(AppDbContext context)
@@ -140,7 +142,9 @@ namespace western_backend.Controllers
                 Status = request.Status,
                 Location = request.Location,
                 Count = 0,
-                Position = maxPosition + 1
+                Position = maxPosition + 1,
+                MetaTitle = request.MetaTitle,
+                MetaDescription = request.MetaDescription
             };
 
             _context.Categories.Add(category);
@@ -170,6 +174,8 @@ namespace western_backend.Controllers
             category.Image = FileStorageService.SaveBase64File(request.Image, "category", category.Image);
             category.Status = request.Status;
             category.Location = request.Location;
+            category.MetaTitle = request.MetaTitle;
+            category.MetaDescription = request.MetaDescription;
 
             await _context.SaveChangesAsync();
 
@@ -200,6 +206,8 @@ namespace western_backend.Controllers
             public string Image { get; set; } = string.Empty;
             public string CategoryId { get; set; } = string.Empty;
             public string Status { get; set; } = "Active";
+            public string? MetaTitle { get; set; }
+            public string? MetaDescription { get; set; }
         }
 
         [HttpGet("subcategories")]
@@ -283,7 +291,9 @@ namespace western_backend.Controllers
                 Image = FileStorageService.SaveBase64File(request.Image, "subcategory"),
                 CategoryId = request.CategoryId,
                 Status = request.Status,
-                Position = maxSubPosition + 1
+                Position = maxSubPosition + 1,
+                MetaTitle = request.MetaTitle,
+                MetaDescription = request.MetaDescription
             };
 
             _context.SubCategories.Add(subCategory);
@@ -313,6 +323,8 @@ namespace western_backend.Controllers
             subCategory.Image = FileStorageService.SaveBase64File(request.Image, "subcategory", subCategory.Image);
             subCategory.CategoryId = request.CategoryId;
             subCategory.Status = request.Status;
+            subCategory.MetaTitle = request.MetaTitle;
+            subCategory.MetaDescription = request.MetaDescription;
 
             await _context.SaveChangesAsync();
 

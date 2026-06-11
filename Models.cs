@@ -20,6 +20,8 @@ namespace western_backend.Models
         public string? Status { get; set; } = "Active";
         public string? Location { get; set; } = "Header";
         public int Position { get; set; }
+        public string? MetaTitle { get; set; }
+        public string? MetaDescription { get; set; }
     }
 
     public class SubCategory
@@ -32,6 +34,8 @@ namespace western_backend.Models
         public string CategoryId { get; set; } = string.Empty;
         public string? Status { get; set; } = "Active";
         public int Position { get; set; }
+        public string? MetaTitle { get; set; }
+        public string? MetaDescription { get; set; }
     }
 
     public class Brand
@@ -142,6 +146,8 @@ namespace western_backend.Models
         public string? DetailsText2 { get; set; }
         public List<string> QuickSpecs { get; set; } = new();
         public List<TrustBadgeItem> TrustBadges { get; set; } = new();
+        public string? MetaTitle { get; set; }
+        public string? MetaDescription { get; set; }
     }
 
     public class TrustBadgeItem
