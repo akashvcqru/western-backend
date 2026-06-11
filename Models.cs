@@ -19,6 +19,7 @@ namespace western_backend.Models
         public string Image { get; set; } = string.Empty;
         public string? Status { get; set; } = "Active";
         public string? Location { get; set; } = "Header";
+        public int Position { get; set; }
     }
 
     public class SubCategory
@@ -30,6 +31,7 @@ namespace western_backend.Models
         public string Image { get; set; } = string.Empty;
         public string CategoryId { get; set; } = string.Empty;
         public string? Status { get; set; } = "Active";
+        public int Position { get; set; }
     }
 
     public class Brand

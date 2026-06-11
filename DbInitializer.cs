@@ -100,6 +100,18 @@ namespace western_backend
                     context.Database.ExecuteSqlRaw("ALTER TABLE Blogs ADD COLUMN Hyperlink TEXT;");
                 }
                 catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD COLUMN Position INTEGER DEFAULT 0;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE SubCategories ADD COLUMN Position INTEGER DEFAULT 0;");
+                }
+                catch { /* Ignored if column already exists */ }
             }
             else
             {
@@ -142,6 +154,18 @@ namespace western_backend
                 try
                 {
                     context.Database.ExecuteSqlRaw("ALTER TABLE Blogs ADD Hyperlink nvarchar(max) NULL;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE Categories ADD Position int NOT NULL DEFAULT 0;");
+                }
+                catch { /* Ignored if column already exists */ }
+
+                try
+                {
+                    context.Database.ExecuteSqlRaw("ALTER TABLE SubCategories ADD Position int NOT NULL DEFAULT 0;");
                 }
                 catch { /* Ignored if column already exists */ }
             }

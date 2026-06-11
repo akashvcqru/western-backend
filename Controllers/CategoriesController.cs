@@ -56,7 +56,8 @@ namespace western_backend.Controllers
 
             sw.Restart();
             var categories = await query
-                .OrderBy(c => c.Name)
+                .OrderBy(c => c.Position)
+                .ThenBy(c => c.Name)
                 .Skip((page - 1) * limit)
                 .Take(limit)
                 .ToListAsync();
@@ -123,6 +124,12 @@ namespace western_backend.Controllers
                 uniqueId = $"{slug}-{counter++}";
             }
 
+            int maxPosition = 0;
+            if (await _context.Categories.AnyAsync())
+            {
+                maxPosition = await _context.Categories.MaxAsync(c => c.Position);
+            }
+
             var category = new Category
             {
                 Id = uniqueId,
@@ -132,7 +139,8 @@ namespace western_backend.Controllers
                 Image = FileStorageService.SaveBase64File(request.Image, "category"),
                 Status = request.Status,
                 Location = request.Location,
-                Count = 0
+                Count = 0,
+                Position = maxPosition + 1
             };
 
             _context.Categories.Add(category);
@@ -218,7 +226,8 @@ namespace western_backend.Controllers
             int totalItems = await query.CountAsync();
 
             var subCategories = await query
-                .OrderBy(c => c.Name)
+                .OrderBy(c => c.Position)
+                .ThenBy(c => c.Name)
                 .Skip((page - 1) * limit)
                 .Take(limit)
                 .ToListAsync();
@@ -259,6 +268,12 @@ namespace western_backend.Controllers
                 uniqueId = $"{slug}-{counter++}";
             }
 
+            int maxSubPosition = 0;
+            if (await _context.SubCategories.AnyAsync())
+            {
+                maxSubPosition = await _context.SubCategories.MaxAsync(c => c.Position);
+            }
+
             var subCategory = new SubCategory
             {
                 Id = uniqueId,
@@ -267,7 +282,8 @@ namespace western_backend.Controllers
                 Description = request.Description,
                 Image = FileStorageService.SaveBase64File(request.Image, "subcategory"),
                 CategoryId = request.CategoryId,
-                Status = request.Status
+                Status = request.Status,
+                Position = maxSubPosition + 1
             };
 
             _context.SubCategories.Add(subCategory);
@@ -318,6 +334,56 @@ namespace western_backend.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(ApiResponse.Success<object>(null!, "SubCategory deleted successfully"));
+        }
+
+        public class ReorderItem
+        {
+            public string Id { get; set; } = string.Empty;
+            public int Position { get; set; }
+        }
+
+        [HttpPut("reorder")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<object>>> ReorderCategories([FromBody] List<ReorderItem> items)
+        {
+            if (items == null || !items.Any())
+            {
+                return BadRequest(ApiResponse.Error("Invalid reorder payload"));
+            }
+
+            foreach (var item in items)
+            {
+                var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == item.Id);
+                if (category != null)
+                {
+                    category.Position = item.Position;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(ApiResponse.Success<object>(null!, "Categories reordered successfully"));
+        }
+
+        [HttpPut("subcategories/reorder")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<object>>> ReorderSubCategories([FromBody] List<ReorderItem> items)
+        {
+            if (items == null || !items.Any())
+            {
+                return BadRequest(ApiResponse.Error("Invalid reorder payload"));
+            }
+
+            foreach (var item in items)
+            {
+                var subCategory = await _context.SubCategories.FirstOrDefaultAsync(c => c.Id == item.Id);
+                if (subCategory != null)
+                {
+                    subCategory.Position = item.Position;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(ApiResponse.Success<object>(null!, "Subcategories reordered successfully"));
         }
 
         private static string GenerateSlug(string name)
