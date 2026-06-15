@@ -544,6 +544,25 @@ namespace western_backend
                 }
             }
 
+            // Backfill null JSON columns to empty JSON arrays if they are NULL
+            try
+            {
+                context.Database.ExecuteSqlRaw("UPDATE Products SET TrustBadges = '[]' WHERE TrustBadges IS NULL;");
+                context.Database.ExecuteSqlRaw("UPDATE Products SET QuickSpecs = '[]' WHERE QuickSpecs IS NULL;");
+                context.Database.ExecuteSqlRaw("UPDATE Products SET Images = '[]' WHERE Images IS NULL;");
+                context.Database.ExecuteSqlRaw("UPDATE Products SET Features = '[]' WHERE Features IS NULL;");
+                context.Database.ExecuteSqlRaw("UPDATE Products SET Specifications = '[]' WHERE Specifications IS NULL;");
+                context.Database.ExecuteSqlRaw("UPDATE Products SET Dimensions = '[]' WHERE Dimensions IS NULL;");
+                context.Database.ExecuteSqlRaw("UPDATE Products SET Resources = '[]' WHERE Resources IS NULL;");
+                context.Database.ExecuteSqlRaw("UPDATE Products SET Variants = '[]' WHERE Variants IS NULL;");
+                context.Database.ExecuteSqlRaw("UPDATE Products SET Swatches = '[]' WHERE Swatches IS NULL;");
+                Console.WriteLine("[Seeding] Checked and backfilled NULL JSON columns in Products table.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Seeding] Error backfilling Products JSON columns: {ex.Message}");
+            }
+
             // 9. Update Category Product Counts
             try
             {

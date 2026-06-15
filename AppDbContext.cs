@@ -115,54 +115,63 @@ namespace western_backend
                 entity.HasKey(e => e.Id);
 
                 entity.Property(e => e.Images)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
                     .Metadata.SetValueComparer(stringListComparer);
 
                 entity.Property(e => e.Features)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<FeatureItem>>(v, (JsonSerializerOptions?)null) ?? new List<FeatureItem>())
                     .Metadata.SetValueComparer(featureListComparer);
 
                 entity.Property(e => e.Specifications)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<SpecificationItem>>(v, (JsonSerializerOptions?)null) ?? new List<SpecificationItem>())
                     .Metadata.SetValueComparer(specListComparer);
 
                 entity.Property(e => e.Dimensions)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<DimensionItem>>(v, (JsonSerializerOptions?)null) ?? new List<DimensionItem>())
                     .Metadata.SetValueComparer(dimListComparer);
 
                 entity.Property(e => e.Resources)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<ResourceItem>>(v, (JsonSerializerOptions?)null) ?? new List<ResourceItem>())
                     .Metadata.SetValueComparer(resourceListComparer);
 
                 entity.Property(e => e.Variants)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<VariantItem>>(v, (JsonSerializerOptions?)null) ?? new List<VariantItem>())
                     .Metadata.SetValueComparer(variantListComparer);
 
                 entity.Property(e => e.Swatches)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<SwatchItem>>(v, (JsonSerializerOptions?)null) ?? new List<SwatchItem>())
                     .Metadata.SetValueComparer(swatchListComparer);
 
                 entity.Property(e => e.QuickSpecs)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
                     .Metadata.SetValueComparer(stringListComparer);
 
                 entity.Property(e => e.TrustBadges)
+                    .IsRequired(false)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<TrustBadgeItem>>(v, (JsonSerializerOptions?)null) ?? new List<TrustBadgeItem>())
