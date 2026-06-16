@@ -159,6 +159,22 @@ if (!Directory.Exists(uploadsPath))
 {
     Directory.CreateDirectory(uploadsPath);
 }
+
+// Redirect missing uploads to staging domain
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/uploads", out var remaining))
+    {
+        var physicalPath = Path.Combine(uploadsPath, remaining.Value.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(physicalPath))
+        {
+            context.Response.Redirect($"https://western.vcqru.com/uploads{remaining}");
+            return;
+        }
+    }
+    await next();
+});
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
