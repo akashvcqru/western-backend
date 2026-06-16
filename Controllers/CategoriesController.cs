@@ -214,13 +214,19 @@ namespace western_backend.Controllers
         public async Task<ActionResult<PaginatedApiResponse<SubCategory>>> GetAllSubcategories(
             [FromQuery] int page = 1,
             [FromQuery] int limit = 100,
-            [FromQuery] string? search = null)
+            [FromQuery] string? search = null,
+            [FromQuery] string? categoryId = null)
         {
             if (page < 1) page = 1;
             if (limit < 1) limit = 100;
             if (limit > 100) limit = 100;
 
             var query = _context.SubCategories.AsQueryable();
+
+            if (!string.IsNullOrEmpty(categoryId))
+            {
+                query = query.Where(c => c.CategoryId == categoryId);
+            }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
