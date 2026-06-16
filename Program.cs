@@ -34,6 +34,26 @@ if (args.Contains("--generate-schema"))
     return;
 }
 
+if (args.Contains("--sync-seo"))
+{
+    var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+    // Detect SQLite vs SQL Server connection string format
+    if (connectionString.Contains("Data Source=") && connectionString.Contains(".db"))
+    {
+        optionsBuilder.UseSqlite(connectionString);
+    }
+    else
+    {
+        optionsBuilder.UseSqlServer(connectionString);
+    }
+    
+    using var db = new AppDbContext(optionsBuilder.Options);
+    Console.WriteLine("[SEO Sync] Starting database SEO meta tag synchronization...");
+    SeoSyncer.Sync(db).GetAwaiter().GetResult();
+    Console.WriteLine("[SEO Sync] Completed SEO meta tag synchronization.");
+    return;
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
