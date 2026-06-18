@@ -247,6 +247,16 @@ namespace western_backend
                 };
                 context.Settings.Add(new Setting { Key = "bdm_settings_slider", Value = JsonSerializer.Serialize(sliderSettings) });
             }
+
+            if (!context.Settings.Any(s => s.Key.ToLower() == "bdm_settings_logo"))
+            {
+                var logoSettings = new
+                {
+                    headerLogo = "/logo-v3.png",
+                    footerLogo = "/logo-v3.png"
+                };
+                context.Settings.Add(new Setting { Key = "bdm_settings_logo", Value = JsonSerializer.Serialize(logoSettings) });
+            }
             context.SaveChanges();
 
             // Options for JSON Deserialization
