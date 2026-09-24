@@ -56,7 +56,14 @@ if (args.Contains("--sync-seo"))
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseSqlServer(connectionString);
+    if (connectionString.Contains("Data Source=") && (connectionString.Contains(".db") || connectionString.Contains("sqlite", StringComparison.OrdinalIgnoreCase)))
+    {
+        options.UseSqlite(connectionString);
+    }
+    else
+    {
+        options.UseSqlServer(connectionString);
+    }
 });
 
 // Add CORS policy
