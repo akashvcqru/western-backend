@@ -85,15 +85,8 @@ namespace western_backend.Controllers
             string message = request.Message ?? "No message specified.";
             string dateStr = DateTime.Now.ToString("yyyy-MM-dd");
 
-            long timestampId = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            while (await _context.Inquiries.AnyAsync(i => i.Id == timestampId))
-            {
-                timestampId++;
-            }
-
             var inquiry = new Inquiry
             {
-                Id = timestampId,
                 Name = customerName,
                 Email = request.Email,
                 Phone = request.Phone,
